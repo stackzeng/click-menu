@@ -6,6 +6,23 @@
     <description>ClickMenu 版本更新</description>
     <language>zh-CN</language>
     <item>
+      <title>ClickMenu 1.2.0</title>
+      <pubDate>Sun, 22 Nov 2026 14:11:47 GMT</pubDate>
+      <sparkle:version>3</sparkle:version>
+      <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+<h3>安装体验</h3>
+<ul>
+<li><b>全新的安装窗口</b>：打开 DMG 后，左边是 ClickMenu，右边是「应用程序」，中间有箭头和说明，拖过去即可完成安装</li>
+<li>安装盘有了自己的图标</li>
+<li><b>一键移到「应用程序」</b>：如果直接在安装盘或「下载」文件夹里打开了 ClickMenu，会提示移动；点一下即可自动移过去并重新打开，同时推出安装盘</li>
+<li>这样可以避免因为 App 不在「应用程序」里，导致系统设置中找不到 ClickMenu 扩展开关的问题</li>
+</ul>
+      ]]></description>
+      <enclosure url="https://github.com/stackzeng/click-menu/releases/download/v1.2.0/ClickMenu-1.2.0.dmg" type="application/octet-stream" sparkle:edSignature="B6FrD0d+ZqdIIq1LZWR+YcJOUR9byEnvZQnviGcWNUvzPEQdtEEruNcWDD88Tc2SKNeA/E832xr2Tt9sazaLDA==" length="3070465"/>
+    </item>
+    <item>
       <title>ClickMenu 1.1.0</title>
       <pubDate>Sun, 22 Nov 2026 13:50:24 GMT</pubDate>
       <sparkle:version>2</sparkle:version>
