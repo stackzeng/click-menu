@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>ClickMenu</title>
+    <link>https://github.com/stackzeng/click-menu</link>
+    <description>ClickMenu 版本更新</description>
+    <language>zh-CN</language>
+    <item>
+      <title>ClickMenu 1.1.0</title>
+      <pubDate>Sun, 22 Nov 2026 13:50:24 GMT</pubDate>
+      <sparkle:version>2</sparkle:version>
+      <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+<h3>新功能</h3>
+<ul>
+<li><b>自动更新</b>：有新版本时，菜单栏图标会出现圆点，菜单里显示「新版本可用」，点一下即可下载安装</li>
+<li>菜单栏菜单和「设置 → 关于」中新增「检查更新」</li>
+<li>「设置 → 关于」中可以开关「自动检查更新」和「自动下载并安装更新」</li>
+<li>更新完成后会提示重启访达，让新版右键菜单立即生效</li>
+</ul>
+<h3>改进</h3>
+<ul>
+<li>设置中可点击的按钮、开关和链接，鼠标悬停时显示手型光标</li>
+<li>精简功能：移除使用频率较低的「复制文件名（不含扩展名）」「复制转义路径」「复制 ~ 短路径」「用编辑器打开」</li>
+</ul>
+<h3>说明</h3>
+<ul>
+<li>从 1.0.0 升级需要手动下载这一次，之后的版本都可以在 App 内一键更新</li>
+<li>ClickMenu 只在检查更新时联网，不收集任何数据</li>
+</ul>
+      ]]></description>
+      <enclosure url="https://github.com/stackzeng/click-menu/releases/download/v1.1.0/ClickMenu-1.1.0.dmg" type="application/octet-stream" sparkle:edSignature="SKoZ4IkO/YqqT4UQRvqDYv1YzpC5z3CCnKBuU+Hksu0sAcZtUKscA5ZFgvS3c3e6nzoL1szEmZsVAIHC7U6xCQ==" length="1901942"/>
+    </item>
+  </channel>
+</rss>

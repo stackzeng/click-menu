@@ -492,6 +492,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.stackzeng.clickmenu.tests;
 				SDKROOT = macosx;
 			};
@@ -593,6 +594,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.stackzeng.clickmenu.tests;
 				SDKROOT = macosx;
 			};
