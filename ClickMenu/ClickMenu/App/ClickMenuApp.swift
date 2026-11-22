@@ -5,14 +5,17 @@ struct ClickMenuApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var settings = AppSettings.shared
     @StateObject private var status = ExtensionStatus.shared
+    @StateObject private var updater = UpdaterController.shared
 
     var body: some Scene {
         // 菜单栏常驻图标。设置窗口与引导窗口由 WindowManager 用 AppKit 管理，便于从任意入口打开。
         MenuBarExtra(isInserted: menuBarIconBinding) {
             MenuBarContent()
                 .environmentObject(status)
+                .environmentObject(updater)
         } label: {
-            Image("StatusBrand")  // 菜单栏保持单色，跟随系统深浅色
+            // 菜单栏保持单色模板图标；有新版本时换成带圆点的版本
+            Image(updater.availableVersion == nil ? "StatusBrand" : "StatusBrandUpdate")
                 .renderingMode(.template)
         }
         .menuBarExtraStyle(.menu)

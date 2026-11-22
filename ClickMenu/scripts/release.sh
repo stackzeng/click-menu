@@ -13,6 +13,10 @@
 # 可用环境变量：
 #   NOTARY_PROFILE  公证凭证名，默认 clickmenu-notary
 #   TEAM_ID         签名团队，默认取 project.yml 中的 DEVELOPMENT_TEAM
+#
+# 自动更新：脚本最后会用 Sparkle 的 EdDSA 私钥（存在钥匙串里）给 DMG 签名，并更新仓库根目录的 appcast.xml。
+# 更新说明写在 ReleaseNotes/<版本号>.md（正式发布时必须有）。
+# 发布顺序：先把 DMG 上传到 GitHub Release，再提交并推送 appcast.xml（否则老版本会下载到 404）。
 set -euo pipefail
 
 MODE="release"
@@ -26,6 +30,12 @@ APP_NAME="ClickMenu"
 NOTARY_PROFILE="${NOTARY_PROFILE:-clickmenu-notary}"
 TEAM_ID="${TEAM_ID:-$(awk '/DEVELOPMENT_TEAM:/{print $2; exit}' project.yml)}"
 VERSION="$(awk -F'"' '/MARKETING_VERSION:/{print $2; exit}' project.yml)"
+BUILD="$(awk -F'"' '/CURRENT_PROJECT_VERSION:/{print $2; exit}' project.yml)"
+MIN_OS="$(awk -F'"' '/MACOSX_DEPLOYMENT_TARGET:/{print $2; exit}' project.yml)"
+NOTES="$ROOT/ReleaseNotes/$VERSION.md"
+APPCAST="$ROOT/../appcast.xml"
+SPARKLE_ACCOUNT="io.github.stackzeng.clickmenu"
+REPO_URL="https://github.com/stackzeng/click-menu"
 OUT="$ROOT/build/release"
 ARCHIVE="$OUT/$APP_NAME.xcarchive"
 APP="$OUT/$APP_NAME.app"
@@ -61,6 +71,12 @@ if [[ "$MODE" == "release" ]]; then
     || fail "找不到公证凭证 $NOTARY_PROFILE，请先运行：xcrun notarytool store-credentials $NOTARY_PROFILE"
 fi
 
+if [[ "$MODE" == "release" ]]; then
+  [[ -f "$NOTES" ]] || fail "缺少更新说明 $NOTES"
+  grep -q "<sparkle:version>$BUILD</sparkle:version>" "$APPCAST" 2>/dev/null \
+    && fail "appcast.xml 中已有 build $BUILD，请先递增 project.yml 的 CURRENT_PROJECT_VERSION"
+fi
+
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
@@ -76,6 +92,17 @@ xcodebuild -project "$APP_NAME.xcodeproj" -scheme "$APP_NAME" -configuration Rel
   OTHER_CODE_SIGN_FLAGS="--timestamp" CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO
 
 ditto "$ARCHIVE/Products/Applications/$APP_NAME.app" "$APP"
+
+step "重新签名 Sparkle 组件"
+# 宿主 App 未开沙盒，用不到 Sparkle 的 XPC 服务（官方文档允许删除）；
+# 其余辅助程序要用我们的证书 + Hardened Runtime + 时间戳签名，才能通过公证
+SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
+rm -rf "$SPARKLE/Versions/B/XPCServices"
+codesign -f -s "$IDENTITY_HASH" -o runtime --timestamp "$SPARKLE/Versions/B/Autoupdate"
+codesign -f -s "$IDENTITY_HASH" -o runtime --timestamp "$SPARKLE/Versions/B/Updater.app"
+codesign -f -s "$IDENTITY_HASH" -o runtime --timestamp "$SPARKLE"
+codesign -d --entitlements - --xml "$APP" > "$OUT/app.entitlements" 2>/dev/null
+codesign -f -s "$IDENTITY_HASH" -o runtime --timestamp --entitlements "$OUT/app.entitlements" "$APP"
 
 step "校验签名"
 codesign --verify --deep --strict --verbose=2 "$APP"
@@ -121,6 +148,24 @@ if [[ "$MODE" == "release" ]]; then
 fi
 
 shasum -a 256 "$DMG" | tee "$DMG.sha256"
+
+# ---------- 自动更新 appcast ----------
+step "生成 Sparkle 更新签名与 appcast"
+SIGN_UPDATE="$(find build/derived/SourcePackages/artifacts -path '*Sparkle/bin/sign_update' -type f | head -1)"
+[[ -x "$SIGN_UPDATE" ]] || fail "找不到 Sparkle 的 sign_update 工具"
+ED_ATTRS="$("$SIGN_UPDATE" --account "$SPARKLE_ACCOUNT" "$DMG")" || fail "Sparkle 签名失败（钥匙串里没有 EdDSA 私钥？）"
+echo "$ED_ATTRS"
+if [[ "$MODE" == "release" ]]; then
+  python3 scripts/update_appcast.py --appcast "$APPCAST" --version "$VERSION" --build "$BUILD" --min-os "$MIN_OS" \
+    --url "$REPO_URL/releases/download/v$VERSION/$(basename "$DMG")" --sparkle-attrs "$ED_ATTRS" --notes "$NOTES"
+  echo "已更新 $APPCAST —— 上传 DMG 到 GitHub Release 之后再提交推送它"
+else
+  # 本地测试用 appcast，指向本地 DMG
+  [[ -f "$NOTES" ]] || NOTES=/dev/null
+  python3 scripts/update_appcast.py --appcast "$OUT/appcast-dev.xml" --version "$VERSION" --build "$BUILD" --min-os "$MIN_OS" \
+    --url "file://$DMG" --sparkle-attrs "$ED_ATTRS" --notes "$NOTES"
+fi
+
 step "完成：$DMG"
 [[ "$MODE" == "dev" ]] && echo "（--dev 产物未公证，只能本机使用，不能发布）"
 exit 0

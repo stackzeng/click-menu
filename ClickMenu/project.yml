@@ -15,9 +15,15 @@ settings:
     CODE_SIGN_IDENTITY: "Apple Development"
     ENABLE_HARDENED_RUNTIME: YES
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "1.1.0"
+    CURRENT_PROJECT_VERSION: "2"   # 每次发版必须递增，Sparkle 用它判断新旧
     MACOSX_DEPLOYMENT_TARGET: "13.0"
+
+# 自动更新框架
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.6.4
 
 targets:
   # 宿主 App：菜单栏常驻、设置、首次引导、HUD、打开终端/编辑器
@@ -29,6 +35,7 @@ targets:
       - path: Shared
     dependencies:
       - target: ClickMenuFinderExtension
+      - package: Sparkle
     info:
       path: ClickMenu/Info.plist
       properties:
@@ -41,6 +48,11 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: io.github.stackzeng.clickmenu
             CFBundleURLSchemes: [clickmenu]
+        # Sparkle 自动更新
+        SUFeedURL: https://raw.githubusercontent.com/stackzeng/click-menu/main/appcast.xml
+        SUPublicEDKey: IG3iBnFMUSpQei1rCCisEPSJ/Q9FmQebU79vfzgII9I=
+        SUEnableAutomaticChecks: true
+        SUScheduledCheckInterval: 86400
     entitlements:
       path: ClickMenu/ClickMenu.entitlements
       properties:
@@ -92,3 +104,4 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.stackzeng.clickmenu.tests
         GENERATE_INFOPLIST_FILE: YES
+        MACOSX_DEPLOYMENT_TARGET: "14.0"   # 只影响测试包，与 XCTest 保持一致

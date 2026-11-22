@@ -72,10 +72,7 @@ final class FinderSync: FIFinderSync {
             let dir = PathFormatter.directory(for: first)
             send(.terminal(path: PathFormatter.path(dir)))
 
-        case .openInEditor:
-            send(.editor(path: PathFormatter.path(first)))
-
-        case .copyName, .copyPath, .copyBaseName, .copyEscapedPath, .copyTildePath:
+        case .copyName, .copyPath:
             guard let text = PathFormatter.text(for: action, urls: targets) else { return }
             let pb = NSPasteboard.general
             pb.clearContents()

@@ -70,6 +70,7 @@ private struct TabButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .pointingHandCursor()
     }
 }
 
@@ -86,6 +87,7 @@ private struct GeneralSettings: View {
                     HStack(spacing: 10) {
                         StatusBadge(enabled: status.isEnabled)
                         Button("打开系统设置") { status.openSystemSettings() }
+                            .pointingHandCursor()
                     }
                 } label: {
                     Text("Finder 扩展")
@@ -93,12 +95,9 @@ private struct GeneralSettings: View {
                 }
             }
             Section {
-                Toggle("登录时自动启动", isOn: $settings.launchAtLogin)
-                Toggle(isOn: $settings.showMenuBarIcon) {
-                    Text("在菜单栏显示图标")
-                    Text("关闭后可再次打开 ClickMenu 进入设置")
-                }
-                Toggle("复制成功后显示提示", isOn: $settings.showHUD)
+                SwitchRow(title: "登录时自动启动", isOn: $settings.launchAtLogin)
+                SwitchRow(title: "在菜单栏显示图标", subtitle: "关闭后可再次打开 ClickMenu 进入设置", isOn: $settings.showMenuBarIcon)
+                SwitchRow(title: "复制成功后显示提示", isOn: $settings.showHUD)
             }
         }
         .formStyle(.grouped)
@@ -142,6 +141,7 @@ private struct MenuSettings: View {
                         ))
                         .toggleStyle(.switch)
                         .labelsHidden()
+                        .pointingHandCursor()
                     }
                     .padding(.vertical, 4)
                 }
@@ -151,7 +151,7 @@ private struct MenuSettings: View {
             .scrollContentBackground(.hidden)
             .padding(.horizontal, 12)
 
-            Text("「复制文件名」「复制文件名（不含扩展名）」只在选中文件时出现；空白处右键时作用于当前目录。")
+            Text("「复制文件名」只在选中文件时出现；在空白处右键时，「复制路径」和「打开终端」作用于当前目录。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 20)
@@ -176,16 +176,12 @@ private struct TerminalSettings: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
-            Section("「用编辑器打开」使用") {
-                AppPicker(apps: ExternalApps.editors, selection: $settings.editorBundleID)
-                    .padding(.vertical, 4)
-            }
         }
         .formStyle(.grouped)
     }
 }
 
-/// 应用选择卡片，显示真实 App 图标，未安装的置灰不可选
+/// 终端选择卡片，显示真实 App 图标，未安装的置灰不可选
 private struct AppPicker: View {
     let apps: [ExternalApp]
     @Binding var selection: String
@@ -210,6 +206,7 @@ private struct AppPicker: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .pointingHandCursor()
                 .disabled(!installed)
                 .opacity(installed ? 1 : 0.45)
             }
@@ -231,6 +228,8 @@ private struct AppIcon: View {
 // MARK: - 关于
 
 private struct AboutSettings: View {
+    @EnvironmentObject private var updater: UpdaterController
+
     private var version: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
         let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
@@ -238,21 +237,46 @@ private struct AboutSettings: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .frame(width: 80, height: 80)
-            Text("ClickMenu").font(.title2.bold())
-            Text(version).foregroundStyle(.secondary)
-            Text("让 Finder 右键菜单更好用")
-                .padding(.top, 6)
-            Spacer()
-            Text("不联网 · 不收集任何数据")
+        VStack(spacing: 0) {
+            VStack(spacing: 4) {
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 64, height: 64)
+                Text("ClickMenu").font(.title2.bold())
+                Text(version).foregroundStyle(.secondary)
+            }
+            .padding(.top, 18)
+
+            Form {
+                Section {
+                    LabeledContent {
+                        Button("检查更新") { updater.checkForUpdates() }
+                            .pointingHandCursor()
+                            .disabled(!updater.canCheckForUpdates)
+                    } label: {
+                        Text("软件更新")
+                        Text(updater.statusText)
+                    }
+                    SwitchRow(title: "自动检查更新", subtitle: "每天在后台检查一次，有新版本时在菜单栏提示",
+                              isOn: $updater.automaticallyChecks)
+                    SwitchRow(title: "自动下载并安装更新", subtitle: "下载完成后在退出 App 时安装，无需确认",
+                              isOn: $updater.automaticallyDownloads)
+                        .disabled(!updater.automaticallyChecks)
+                }
+            }
+            .formStyle(.grouped)
+            .scrollDisabled(true)
+            .frame(height: 190)
+
+            Link("GitHub 主页", destination: URL(string: "https://github.com/stackzeng/click-menu")!)
+                .pointingHandCursor()
+                .padding(.top, 4)
+            Text("只在检查更新时联网 · 不收集任何数据")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .padding(.bottom, 24)
+                .padding(.top, 6)
+            Spacer()
         }
-        .padding(.top, 40)
         .frame(maxWidth: .infinity)
     }
 }

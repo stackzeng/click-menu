@@ -117,6 +117,7 @@ struct OnboardingView: View {
             .padding(.top, 18)
 
             Toggle("登录时自动启动 ClickMenu", isOn: $settings.launchAtLogin)
+                .pointingHandCursor()
                 .padding(.top, 14)
         }
     }
@@ -126,20 +127,29 @@ struct OnboardingView: View {
         switch model.step {
         case 0:
             Button("继续") { model.step = 1 }
+                .pointingHandCursor()
                 .keyboardShortcut(.defaultAction)
         case 1:
             HStack {
                 Button("返回") { model.step = 0 }
+                    .pointingHandCursor()
                 if status.isEnabled {
-                    Button("继续") { model.step = 2 }.keyboardShortcut(.defaultAction)
+                    Button("继续") { model.step = 2 }
+                        .pointingHandCursor()
+                        .keyboardShortcut(.defaultAction)
                 } else {
-                    Button("打开系统设置") { status.openSystemSettings() }.keyboardShortcut(.defaultAction)
+                    Button("打开系统设置") { status.openSystemSettings() }
+                        .pointingHandCursor()
+                        .keyboardShortcut(.defaultAction)
                 }
             }
         default:
             HStack {
                 Button("重新查看") { model.step = 0 }
-                Button("去试试") { finish() }.keyboardShortcut(.defaultAction)
+                    .pointingHandCursor()
+                Button("去试试") { finish() }
+                    .pointingHandCursor()
+                    .keyboardShortcut(.defaultAction)
             }
         }
     }

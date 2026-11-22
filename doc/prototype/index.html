@@ -117,6 +117,18 @@ main{max-width:1100px;margin:0 auto;padding:8px 16px 40px}
 .ico-sizes{display:flex;gap:6px}
 .ico-sizes span{display:flex;align-items:center;justify-content:center;width:28px;height:22px;border-radius:5px;background:var(--win);border:1px solid var(--line)}
 .ico-sizes span.inv{background:var(--hover);color:#fff;border-color:transparent}
+.upd-dot{position:absolute;top:0;right:1px;width:7px;height:7px;border-radius:50%;background:#ff453a;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
+.upd{width:min(540px,100%);margin:20px auto 0}
+.upd .ub{display:flex;gap:16px;padding:20px 22px 18px}
+.upd .ub .ic{width:64px;height:64px;flex:none;border-radius:15px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:flex;align-items:center;justify-content:center;color:#fff}
+.upd h3{margin:0 0 4px;font-size:14px}
+.upd p{margin:0 0 10px;color:var(--text2);font-size:12.5px}
+.upd .notes{border:1px solid var(--line);border-radius:7px;background:var(--win-side);padding:10px 12px;height:120px;overflow:auto;font-size:12.5px;margin-bottom:10px}
+.upd .notes h4{margin:0 0 6px;font-size:13px}.upd .notes ul{margin:0;padding-left:18px}
+.upd .btns{display:flex;gap:8px;align-items:center;margin-top:12px}
+.upd .btns .sp{flex:1}
+.upd .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:6px 0 4px}
+.upd .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
 .opt{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;align-items:center;font-size:12.5px}
 .opt label{display:flex;gap:6px;align-items:center;cursor:pointer}
 
@@ -197,6 +209,7 @@ select{font:inherit;padding:3px 6px;border-radius:6px;border:1px solid var(--lin
     <button data-v="menubar">② 菜单栏</button>
     <button data-v="settings">③ 设置窗口</button>
     <button data-v="onboard">④ 首次引导</button>
+    <button data-v="update">⑤ 自动更新</button>
   </nav>
 </header>
 
@@ -204,9 +217,6 @@ select{font:inherit;padding:3px 6px;border-radius:6px;border:1px solid var(--lin
 <!-- ① Finder -->
 <section class="view on" id="v-finder">
   <p class="note">在文件上 <b>右键</b>（或在空白处右键）→ 鼠标移到 <b>「ClickMenu ▸」</b> 展开功能。⌘ / ⇧ + 点击可多选。橙色竖条标记的是 ClickMenu 注入的菜单项。</p>
-  <div class="opt">
-    <label><input type="checkbox" id="optExtra"> 显示 P1 增强项（F5–F7、F9）</label>
-  </div>
   <div class="desk" id="deskF">
     <div class="menubar"><b></b><b>访达</b><span>文件</span><span>编辑</span><span>显示</span>
       <div class="right"><span class="cm-icon" title="ClickMenu">${ICON}</span><span>周六 21:30</span></div></div>
@@ -242,20 +252,21 @@ select{font:inherit;padding:3px 6px;border-radius:6px;border:1px solid var(--lin
 
 <!-- ② Menubar -->
 <section class="view" id="v-menubar">
-  <p class="note">宿主 App 常驻菜单栏。点击图标切换展开；下面的开关可以模拟扩展未启用的状态。</p>
-  <div class="opt"><label><input type="checkbox" id="optEnabled" checked> 扩展已启用</label></div>
+  <p class="note">宿主 App 常驻菜单栏。点击图标切换展开；下面的开关可以模拟扩展未启用、发现新版本两种状态。</p>
+  <div class="opt"><label><input type="checkbox" id="optEnabled" checked> 扩展已启用</label><label><input type="checkbox" id="optUpdate"> 发现新版本（后台检查到 1.1.0）</label></div>
   <div class="desk" style="min-height:380px">
     <div class="menubar"><b></b><b>访达</b><span>文件</span><span>编辑</span>
-      <div class="right"><span class="cm-icon active" id="mbIcon">${ICON}</span><span>周六 21:30</span></div></div>
+      <div class="right"><span class="cm-icon active" id="mbIcon" style="position:relative">${ICON}<i id="mbDot" class="upd-dot" style="display:none"></i></span><span>周六 21:30</span></div></div>
     <div class="drop" id="drop">
       <div class="head"><div class="logo">${ICON}</div>
         <div><b>ClickMenu</b><div class="st" id="mbSt"></div></div></div>
       <div class="ctx" style="display:block;position:static;box-shadow:none;background:none;backdrop-filter:none;padding:0;min-width:0">
         <div class="sep"></div>
         <div id="mbWarn"></div>
+        <div id="mbUpdate"></div>
         <div class="it" data-go="settings">设置…<span class="k">⌘,</span></div>
+        <div class="it" data-go="update" data-upd="check">检查更新…</div>
         <div class="it" data-go="onboard">显示使用引导</div>
-        <div class="it">检查更新…</div>
         <div class="sep"></div>
         <div class="it">关于 ClickMenu</div>
         <div class="it">退出 ClickMenu<span class="k">⌘Q</span></div>
@@ -293,7 +304,7 @@ select{font:inherit;padding:3px 6px;border-radius:6px;border:1px solid var(--lin
       <div class="spane" id="p-menu">
         <p class="note" style="margin:0 0 8px">所有功能统一收在右键菜单的「ClickMenu ▸」子菜单里，下面控制子菜单中显示哪些项及顺序。</p>
         <div class="group" id="menuList"></div>
-        <p class="note" style="margin:0">拖动 ≡ 调整顺序 · 标 P1 的为 v1.1 功能</p>
+        <p class="note" style="margin:0">拖动 ≡ 调整顺序，开关控制是否显示</p>
       </div>
 
       <div class="spane" id="p-terminal">
@@ -307,12 +318,20 @@ select{font:inherit;padding:3px 6px;border-radius:6px;border:1px solid var(--lin
         </div>
       </div>
 
-      <div class="spane" id="p-about" style="text-align:center;padding-top:36px">
-        <div class="logo" style="width:64px;height:64px;border-radius:16px;margin:0 auto 10px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:flex;align-items:center;justify-content:center;color:#fff">${ICON_L}</div>
-        <h2 style="margin:0">ClickMenu</h2>
-        <p style="color:var(--text2);margin:4px 0 16px">版本 1.0.0 (1)</p>
-        <button class="btn">检查更新</button> <button class="btn">GitHub</button>
-        <p style="color:var(--text2);font-size:11.5px;margin-top:24px">不联网 · 不收集任何数据</p>
+      <div class="spane" id="p-about">
+        <div style="text-align:center;padding-top:6px">
+          <div class="logo" style="width:64px;height:64px;border-radius:16px;margin:0 auto 8px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:flex;align-items:center;justify-content:center;color:#fff">${ICON_L}</div>
+          <h2 style="margin:0">ClickMenu</h2>
+          <p style="color:var(--text2);margin:2px 0 0">版本 1.1.0 (2)</p>
+        </div>
+        <div class="group" style="margin-top:16px">
+          <div class="row"><div class="grow"><b>软件更新</b><small id="aboutUpd">上次检查：今天 21:30 · 已是最新版本</small></div>
+            <button class="btn" id="aboutCheck">检查更新</button></div>
+          <div class="row"><div class="grow">自动检查更新<small>每天在后台检查一次，有新版本时在菜单栏提示</small></div><div class="sw on"></div></div>
+          <div class="row"><div class="grow">自动下载并安装更新<small>下载完成后在退出 App 时安装，无需确认</small></div><div class="sw"></div></div>
+        </div>
+        <div style="text-align:center"><button class="btn">GitHub 主页</button>
+          <p style="color:var(--text2);font-size:11.5px;margin-top:10px">只在检查更新时联网 · 不收集任何数据</p></div>
       </div>
     </div>
   </div>
@@ -327,6 +346,18 @@ select{font:inherit;padding:3px 6px;border-radius:6px;border:1px solid var(--lin
       <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div></div>
       <div class="body" id="onbBody"></div>
     </div>
+  </div>
+</section>
+
+<!-- ⑤ Update -->
+<section class="view" id="v-update">
+  <p class="note">点击切换自动更新流程中的各个窗口。更新窗口由 Sparkle 提供（系统原生样式、中文界面），这里模拟其外观。</p>
+  <div class="opt"><div class="seg" id="updSeg">
+    <button data-s="found" class="on">① 发现新版本</button><button data-s="download">② 下载并安装</button>
+    <button data-s="latest">③ 已是最新</button><button data-s="restart">④ 更新完成</button></div></div>
+  <div class="desk" style="min-height:440px">
+    <div class="menubar"><b></b><b>ClickMenu</b></div>
+    <div class="win upd" id="updWin"></div>
   </div>
 </section>
 </main>
@@ -351,27 +382,17 @@ const SVG = {
   path: G('<path d="M1.8 4.3c0-.7.6-1.3 1.3-1.3h2.6c.35 0 .68.15.92.4l.98 1.1h5.3c.7 0 1.3.6 1.3 1.3v6.2c0 .7-.6 1.3-1.3 1.3H3.1c-.7 0-1.3-.6-1.3-1.3Z"/><path d="M9.1 6.9 6.9 11.3"/>'),
   // 在此处打开终端：窗口 + 提示符 >_
   term: G('<rect x="1.8" y="2.6" width="12.4" height="10.8" rx="2.2"/><path d="m4.6 6.3 1.9 1.7-1.9 1.7M8.2 10.1h3.2"/>'),
-  // 复制文件名（不含扩展名）：标签
-  base: G('<path d="M2.2 8.4V3.4c0-.66.54-1.2 1.2-1.2h5c.32 0 .62.13.85.35l4.4 4.4c.47.47.47 1.23 0 1.7l-4.9 4.9c-.47.47-1.23.47-1.7 0l-4.5-4.4a1.2 1.2 0 0 1-.35-.85Z"/><circle cx="5.3" cy="5.3" r=".9" fill="currentColor" stroke="none"/>'),
-  // 复制转义路径：反斜杠 + 空格符 ␣
-  esc: G('<rect x="1.8" y="3.2" width="12.4" height="9.6" rx="2.2"/><path d="M4.3 5.7 6.6 10.3"/><path d="M8.7 9.1v1.2h3.1V9.1"/>'),
-  // 复制 ~ 短路径：主目录（房子）+ ~
-  tilde: G('<path d="M2.4 7 8 2.3 13.6 7v5.8c0 .5-.4.9-.9.9H3.3c-.5 0-.9-.4-.9-.9Z"/><path d="M5.9 10.4c.55-.9 1.45-1 2.1-.35s1.55.55 2.1-.35"/>'),
-  // 用编辑器打开：代码括号
-  code: G('<path d="M5.2 4.4 1.8 8l3.4 3.6M10.8 4.4 14.2 8l-3.4 3.6M9.1 2.8 6.9 13.2"/>'),
   // 启用扩展（引导页用）：拼图
   ext: G('<path d="M6.4 2.4a1.5 1.5 0 0 1 3 0v1.2h2.4c.5 0 .9.4.9.9v2.3h-1.1a1.5 1.5 0 0 0 0 3h1.1v2.3c0 .5-.4.9-.9.9H9.5v-1.1a1.5 1.5 0 0 0-3 0V13H4.1c-.5 0-.9-.4-.9-.9V9.8h1.1a1.5 1.5 0 0 0 0-3H3.2V4.5c0-.5.4-.9.9-.9h2.3Z"/>'),
 };
 
 /* 右键菜单用彩色方块图标：渐变底色 + 白色图形（与 App 内 Icons.xcassets 一致） */
-const TILE={brand:['#3D9BFF','#6B5CF0'],name:['#FFB340','#FF7A00'],path:['#4FC3FF','#0A7CFF'],term:['#3EDC6E','#14A84A'],
-  base:['#FF6B8A','#F0305A'],esc:['#D27CFF','#9B4DEB'],tilde:['#40D9D0','#0FA8A8'],code:['#7C86FF','#4E52E6']};
+const TILE={brand:['#3D9BFF','#6B5CF0'],name:['#FFB340','#FF7A00'],path:['#4FC3FF','#0A7CFF'],term:['#3EDC6E','#14A84A']};
 const tile=(key,svg)=>{const [a,b]=TILE[key]; const inner=svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
   return `<svg viewBox="0 0 16 16" width="16" height="16"><defs><linearGradient id="t-${key}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>`+
   `<rect x=".5" y=".5" width="15" height="15" rx="3.6" fill="url(#t-${key})"/><rect x=".5" y=".5" width="15" height="15" rx="3.6" fill="none" stroke="#000" stroke-opacity=".12" stroke-width=".5"/>`+
   `<g transform="translate(2.72 2.72) scale(0.66)" color="#fff" fill="none" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`;};
-const CM={brand:tile('brand',ICON),name:tile('name',SVG.name),path:tile('path',SVG.path),term:tile('term',SVG.term),
-  base:tile('base',SVG.base),esc:tile('esc',SVG.esc),tilde:tile('tilde',SVG.tilde),code:tile('code',SVG.code)};
+const CM={brand:tile('brand',ICON),name:tile('name',SVG.name),path:tile('path',SVG.path),term:tile('term',SVG.term)};
 
 /* 图标规范展示 */
 const SPEC=[
@@ -379,10 +400,6 @@ const SPEC=[
   ['name',CM.name,'复制文件名','doc.text','P0'],
   ['path',CM.path,'复制完整路径','folder','P0'],
   ['term',CM.term,'在此处打开终端','terminal','P0'],
-  ['base',CM.base,'复制文件名（不含扩展名）','tag','P1'],
-  ['esc',CM.esc,'复制转义路径','character.cursor.ibeam','P1'],
-  ['tilde',CM.tilde,'复制 ~ 短路径','house','P1'],
-  ['code',CM.code,'用编辑器打开','chevron.left.forwardslash.chevron.right','P1'],
 ];
 const big=svg=>svg.replace('width="16" height="16"','width="40" height="40"');
 document.getElementById('iconSpec').innerHTML=SPEC.map(([k,svg,t,sf,pr])=>`
@@ -449,22 +466,18 @@ grid.addEventListener('contextmenu',e=>{
 
 /* ---------- context menu ---------- */
 const ctx=document.getElementById('ctx');
-const optExtra=document.getElementById('optExtra');
 function cmItems(kind){
   const L=[];
   if(kind==='items'){
     L.push({id:'name',t:'复制文件名',ic:CM.name});
-    if(optExtra.checked) L.push({id:'base',t:'复制文件名（不含扩展名）',ic:CM.base,p1:1});
     L.push({id:'path',t:'复制完整路径',ic:CM.path});
-    if(optExtra.checked){ L.push({id:'esc',t:'复制转义路径',ic:CM.esc,p1:1}); L.push({id:'tilde',t:'复制 ~ 短路径',ic:CM.tilde,p1:1}); }
   } else {
     L.push({id:'path',t:'复制当前目录路径',ic:CM.path});
   }
   L.push({id:'term',t:'在此处打开终端',ic:CM.term});
-  if(optExtra.checked) L.push({id:'code',t:'用 VS Code 打开',ic:CM.code,p1:1});
   return L;
 }
-function itemHTML(x){ return `<div class="it cm" data-a="${x.id}">${x.ic}${x.t}${x.p1?'<span class="k">P1</span>':''}</div>`; }
+function itemHTML(x){ return `<div class="it cm" data-a="${x.id}">${x.ic}${x.t}</div>`; }
 function showCtx(e,kind){
   const cm=cmItems(kind);
   const cmBlock = `<div class="it cm has">${CM.brand}ClickMenu<span class="k">▸</span><div class="ctx sub" style="display:none">${cm.map(itemHTML).join('')}</div></div>`;
@@ -512,12 +525,8 @@ function act(a){
   const unit = s.length>1?`${s.length} 个`:'1 个';
   switch(a){
     case 'name': out=s.map(x=>x[1]).join('\n'); label=`已复制 ${unit}文件名`; break;
-    case 'base': out=s.map(x=>x[0]==='📁'?x[1]:x[1].replace(/\.[^.]+$/,'')).join('\n'); label=`已复制 ${unit}文件名（不含扩展名）`; break;
     case 'path': out=s.length? s.map(x=>full(x[1])).join('\n') : cwd; label=s.length?`已复制 ${unit}路径`:'已复制当前目录路径'; break;
-    case 'esc': out=s.map(x=>full(x[1]).replace(/([ ()&'"])/g,'\\$1')).join('\n'); label=`已复制 ${unit}转义路径`; break;
-    case 'tilde': out=s.map(x=>full(x[1]).replace('/Users/bin','~')).join('\n'); label=`已复制 ${unit}短路径`; break;
     case 'term': return openTerm(s);
-    case 'code': log(`用 VS Code 打开：${s.length?full(s[0][1]):cwd}`); return hud('已在 VS Code 中打开', s.length?s[0][1]:NAMES[cwd]);
   }
   try{ navigator.clipboard && navigator.clipboard.writeText(out).catch(()=>{}); }catch(e){}
   document.getElementById('clipOut').textContent=out;
@@ -557,9 +566,17 @@ function renderMb(){
   document.getElementById('mbWarn').innerHTML = on ? ''
     : '<div class="it" data-go="onboard" style="color:#ff453a">⚠︎ 去启用 Finder 扩展…</div><div class="sep"></div>';
 }
+const optUpdate=document.getElementById('optUpdate');
+function renderMbUpd(){
+  const on=optUpdate.checked;
+  document.getElementById('mbDot').style.display=on?'block':'none';
+  document.getElementById('mbUpdate').innerHTML = on
+    ? '<div class="it" data-go="update" data-upd="found" style="font-weight:600">⬆︎ 新版本 1.1.0 可用…<span class="k" style="background:#ff453a;color:#fff;border-radius:8px;padding:0 6px;font-size:10.5px">新</span></div><div class="sep"></div>' : '';
+}
+optUpdate.onchange=renderMbUpd; renderMbUpd();
 optEnabled.onchange=renderMb; renderMb();
 document.getElementById('mbIcon').onclick=function(){ const d=document.getElementById('drop'); const show=d.style.display==='none'; d.style.display=show?'block':'none'; this.classList.toggle('active',show); };
-document.getElementById('v-menubar').addEventListener('click',e=>{ const g=e.target.closest('[data-go]'); if(g) go(g.dataset.go); });
+document.getElementById('v-menubar').addEventListener('click',e=>{ const g=e.target.closest('[data-go]'); if(!g) return; if(g.dataset.upd) showUpd(g.dataset.upd==='check' ? (optUpdate.checked?'found':'latest') : 'found'); go(g.dataset.go); });
 
 /* ---------- settings ---------- */
 const PT={general:'通用',menu:'菜单',terminal:'终端',about:'关于'};
@@ -573,9 +590,9 @@ document.addEventListener('click',e=>{
   const s=e.target.closest('.sw'); if(s) s.classList.toggle('on');
   const sb=e.target.closest('.seg button'); if(sb){ sb.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===sb)); }
 });
-const MENU=[['复制文件名',1,0],['复制完整路径',1,0],['在此处打开终端',1,0],['复制文件名（不含扩展名）',0,1],['复制转义路径',0,1],['复制 ~ 短路径',0,1],['用编辑器打开',0,1]];
+const MENU=[['复制文件名',1,0],['复制完整路径',1,0],['在此处打开终端',1,0]];
 const ml=document.getElementById('menuList');
-ml.innerHTML=MENU.map(([t,on,p1])=>`<div class="row" draggable="true"><span class="drag">≡</span><div class="grow">${t} ${p1?'<span class="badge" style="background:rgba(255,159,10,.18);color:#c76a00">P1</span>':''}</div><div class="sw${on?' on':''}"></div></div>`).join('');
+ml.innerHTML=MENU.map(([t,on,p1])=>`<div class="row" draggable="true"><span class="drag">≡</span><div class="grow">${t}</div><div class="sw${on?' on':''}"></div></div>`).join('');
 let dragEl;
 ml.addEventListener('dragstart',e=>{dragEl=e.target.closest('.row'); dragEl.style.opacity=.4;});
 ml.addEventListener('dragend',()=>{dragEl.style.opacity=1;});
@@ -584,6 +601,49 @@ const TERMS=[['终端','Terminal','#3a3a3c','>_',1],['iTerm2','iTerm2','#1b1b1b'
 const tl=document.getElementById('tlist');
 tl.innerHTML=TERMS.map(([n,en,c,g,inst],i)=>`<div class="tcard${i===0?' on':''}"><div class="ti" style="background:${c}">${g}</div><b>${n}</b><small>${inst?'已安装':'未安装'}</small></div>`).join('');
 tl.onclick=e=>{const c=e.target.closest('.tcard'); if(c) tl.querySelectorAll('.tcard').forEach(x=>x.classList.toggle('on',x===c));};
+
+/* ---------- update ---------- */
+const NOTES=`<h4>ClickMenu 1.1.0</h4><ul><li>新增自动更新：有新版本时在菜单栏提示，一键安装</li><li>设置 → 关于 中可以手动检查更新</li><li>修复若干问题</li></ul>`;
+let dlTimer;
+function showUpd(state){
+  clearInterval(dlTimer);
+  document.querySelectorAll('#updSeg button').forEach(b=>b.classList.toggle('on',b.dataset.s===state));
+  const w=document.getElementById('updWin');
+  const head=t=>`<div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><span class="t">${t}</span></div>`;
+  const icon=`<div class="ic">${ICON_L}</div>`;
+  if(state==='found') w.innerHTML=head('软件更新')+`<div class="ub">${icon}<div style="flex:1;min-width:0">
+      <h3>ClickMenu 有新版本可用！</h3>
+      <p>ClickMenu 1.1.0 现已发布，你当前的版本是 1.0.0。要现在下载吗？</p>
+      <div style="font-size:12px;font-weight:600;margin-bottom:4px">更新说明：</div>
+      <div class="notes">${NOTES}</div>
+      <label style="font-size:12.5px;display:flex;gap:6px;align-items:center"><input type="checkbox"> 以后自动下载并安装更新</label>
+      <div class="btns"><button class="btn" data-s="latest-skip">跳过此版本</button><span class="sp"></span>
+        <button class="btn">稍后提醒</button><button class="btn pri" data-s="download">安装更新</button></div></div></div>`;
+  if(state==='download'){
+    w.innerHTML=head('正在更新 ClickMenu')+`<div class="ub">${icon}<div style="flex:1">
+      <h3 id="dlT">正在下载更新…</h3><div class="bar"><i id="dlBar"></i></div>
+      <p id="dlS" style="margin:0">0 KB / 1.1 MB</p>
+      <div class="btns"><span class="sp"></span><button class="btn" id="dlBtn">取消</button></div></div></div>`;
+    let pct=0;
+    dlTimer=setInterval(()=>{ pct=Math.min(100,pct+12); document.getElementById('dlBar').style.width=pct+'%';
+      document.getElementById('dlS').textContent=(pct<100 ? `${Math.round(1100*pct/100)} KB / 1.1 MB` : '1.1 MB / 1.1 MB');
+      if(pct>=100){ clearInterval(dlTimer); document.getElementById('dlT').textContent='准备安装';
+        document.getElementById('dlS').textContent='更新已下载并通过签名校验';
+        const b=document.getElementById('dlBtn'); b.textContent='安装并重新启动'; b.className='btn pri'; b.dataset.s='restart'; }},250);
+  }
+  if(state==='latest') w.innerHTML=head('')+`<div class="ub">${icon}<div style="flex:1">
+      <h3>你使用的是最新版本！</h3><p>ClickMenu 1.1.0 是目前的最新版本。</p>
+      <div class="btns"><span class="sp"></span><button class="btn pri">好</button></div></div></div>`;
+  if(state==='restart') w.innerHTML=head('')+`<div class="ub">${icon}<div style="flex:1">
+      <h3>ClickMenu 已更新到 1.1.0</h3>
+      <p>需要重启「访达」才能加载新版右键菜单。重启时打开的访达窗口会自动恢复。</p>
+      <div class="btns"><button class="btn">查看更新说明</button><span class="sp"></span><button class="btn">稍后</button><button class="btn pri">重启访达</button></div></div></div>`;
+}
+document.getElementById('updSeg').onclick=e=>{ const b=e.target.closest('button'); if(b) showUpd(b.dataset.s); };
+document.getElementById('updWin').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(!b) return; showUpd(b.dataset.s==='latest-skip'?'latest':b.dataset.s); });
+document.getElementById('aboutCheck').onclick=()=>{ const t=document.getElementById('aboutUpd'); t.textContent='正在检查…';
+  setTimeout(()=>{ t.textContent='上次检查：刚刚 · 已是最新版本'; },900); };
+showUpd('found');
 
 /* ---------- onboarding ---------- */
 let step=0, detT;

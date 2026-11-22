@@ -1,7 +1,7 @@
 import AppKit
 import os
 
-/// 打开终端 / 编辑器
+/// 打开终端
 @MainActor
 enum Launcher {
     nonisolated private static let log = Logger(subsystem: "io.github.stackzeng.clickmenu", category: "Launcher")
@@ -43,20 +43,4 @@ enum Launcher {
         }
     }
 
-    static func openEditor(at path: String) {
-        guard FileManager.default.fileExists(atPath: path) else {
-            HUDController.shared.show(title: "文件不存在", detail: path, style: .warning)
-            return
-        }
-        let settings = AppSettings.shared
-        guard let editor = settings.editor, let appURL = editor.url else {
-            HUDController.shared.show(title: "未找到编辑器", detail: "请在设置 → 终端中选择已安装的编辑器", style: .warning)
-            return
-        }
-        let config = NSWorkspace.OpenConfiguration()
-        config.activates = true
-        NSWorkspace.shared.open([URL(fileURLWithPath: path)], withApplicationAt: appURL, configuration: config) { _, error in
-            if let error { log.error("打开 \(editor.name, privacy: .public) 失败：\(error.localizedDescription, privacy: .public)") }
-        }
-    }
 }

@@ -15,10 +15,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         log.notice("ClickMenu 已启动")
         Task { @MainActor in
             ExtensionStatus.shared.start()
+            _ = UpdaterController.shared   // 启动 Sparkle，开始后台检查
             if !AppSettings.shared.hasCompletedOnboarding {
                 WindowManager.shared.showOnboarding()
+            } else {
+                self.checkVersionChange()
             }
+            UserDefaults.standard.set(Self.currentVersion, forKey: "lastLaunchedVersion")
         }
+    }
+
+    // MARK: - 更新后提示重启访达
+
+    private static var currentVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+    }
+
+    /// 更新后（含从没有记录版本号的 1.0.0 升级上来）首次启动：Finder 还在运行旧版扩展，提示重启访达
+    @MainActor
+    private func checkVersionChange() {
+        let last = UserDefaults.standard.string(forKey: "lastLaunchedVersion")
+        guard last != Self.currentVersion else { return }
+        log.notice("版本变化：\(last ?? "1.0.0", privacy: .public) → \(Self.currentVersion, privacy: .public)")
+
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.messageText = "ClickMenu 已更新到 \(Self.currentVersion)"
+        alert.informativeText = "需要重启「访达」才能加载新版右键菜单。重启时打开的访达窗口会自动恢复。"
+        alert.addButton(withTitle: "重启访达")
+        alert.addButton(withTitle: "稍后")
+        alert.addButton(withTitle: "查看更新说明")
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            Self.restartFinder()
+        case .alertThirdButtonReturn:
+            NSWorkspace.shared.open(URL(string: "https://github.com/stackzeng/click-menu/releases/tag/v\(Self.currentVersion)")!)
+        default:
+            break
+        }
+    }
+
+    private static func restartFinder() {
+        // Finder 被结束后由系统自动重新启动，并重新加载 Finder 扩展
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/killall")
+        p.arguments = ["Finder"]
+        try? p.run()
     }
 
     // MARK: - clickmenu:// 指令（来自 Finder 扩展）
@@ -49,8 +91,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             HUDController.shared.show(title: title, detail: detail)
         case let .terminal(path):
             Launcher.openTerminal(at: path)
-        case let .editor(path):
-            Launcher.openEditor(at: path)
         case .settings:
             WindowManager.shared.showSettings()
         }

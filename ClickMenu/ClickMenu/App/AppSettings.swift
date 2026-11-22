@@ -14,7 +14,6 @@ final class AppSettings: ObservableObject {
     @Published var enabledActions: Set<MenuAction> { didSet { SharedSettings.enabledActions = enabledActions } }
     @Published var showHUD: Bool { didSet { SharedSettings.showHUD = showHUD } }
     @Published var terminalBundleID: String { didSet { SharedSettings.terminalBundleID = terminalBundleID } }
-    @Published var editorBundleID: String { didSet { SharedSettings.editorBundleID = editorBundleID } }
 
     @Published var showMenuBarIcon: Bool { didSet { local.set(showMenuBarIcon, forKey: "showMenuBarIcon") } }
     @Published var hasCompletedOnboarding: Bool { didSet { local.set(hasCompletedOnboarding, forKey: "hasCompletedOnboarding") } }
@@ -36,7 +35,6 @@ final class AppSettings: ObservableObject {
         enabledActions = SharedSettings.enabledActions
         showHUD = SharedSettings.showHUD
         terminalBundleID = SharedSettings.terminalBundleID
-        editorBundleID = SharedSettings.editorBundleID
         showMenuBarIcon = local.object(forKey: "showMenuBarIcon") as? Bool ?? true
         hasCompletedOnboarding = local.bool(forKey: "hasCompletedOnboarding")
         launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -49,5 +47,4 @@ final class AppSettings: ObservableObject {
     }
 
     var terminal: ExternalApp? { ExternalApps.terminals.first { $0.bundleID == terminalBundleID } }
-    var editor: ExternalApp? { ExternalApps.editors.first { $0.bundleID == editorBundleID } }
 }

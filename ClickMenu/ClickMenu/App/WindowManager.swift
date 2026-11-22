@@ -18,6 +18,7 @@ final class WindowManager {
                 .environmentObject(settingsNavigation)
                 .environmentObject(AppSettings.shared)
                 .environmentObject(ExtensionStatus.shared)
+                .environmentObject(UpdaterController.shared)
             let window = NSWindow(contentViewController: NSHostingController(rootView: root))
             window.title = "ClickMenu 设置"
             window.styleMask = [.titled, .closable, .miniaturizable]

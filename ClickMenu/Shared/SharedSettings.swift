@@ -10,7 +10,6 @@ enum SharedSettings {
         static let enabled = "enabledActions"
         static let showHUD = "showHUD"
         static let terminal = "terminalBundleID"
-        static let editor = "editorBundleID"
     }
 
     /// 子菜单中功能的顺序。新版本新增的功能自动补在末尾。
@@ -51,13 +50,9 @@ enum SharedSettings {
         set { defaults.set(newValue, forKey: Key.terminal) }
     }
 
-    static var editorBundleID: String {
-        get { defaults.string(forKey: Key.editor) ?? ExternalApps.editors[0].bundleID }
-        set { defaults.set(newValue, forKey: Key.editor) }
-    }
 }
 
-/// 可选择的终端 / 编辑器
+/// 可选择的终端
 struct ExternalApp: Identifiable, Hashable {
     let bundleID: String
     let name: String
@@ -76,12 +71,6 @@ enum ExternalApps {
         ExternalApp(bundleID: "org.alacritty", name: "Alacritty"),
     ]
 
-    static let editors: [ExternalApp] = [
-        ExternalApp(bundleID: "com.microsoft.VSCode", name: "VS Code"),
-        ExternalApp(bundleID: "com.todesktop.230313mzl4w4u92", name: "Cursor"),
-        ExternalApp(bundleID: "com.sublimetext.4", name: "Sublime Text"),
-        ExternalApp(bundleID: "com.apple.dt.Xcode", name: "Xcode"),
-    ]
 }
 
 /// 扩展 → 宿主 App 的通信：通过 clickmenu:// URL Scheme。
@@ -91,7 +80,6 @@ enum HostCommand {
 
     case hud(title: String, detail: String?)
     case terminal(path: String)
-    case editor(path: String)
     case settings
 
     var url: URL {
@@ -103,9 +91,6 @@ enum HostCommand {
             c.queryItems = [URLQueryItem(name: "title", value: title)] + (detail.map { [URLQueryItem(name: "detail", value: $0)] } ?? [])
         case let .terminal(path):
             c.host = "terminal"
-            c.queryItems = [URLQueryItem(name: "path", value: path)]
-        case let .editor(path):
-            c.host = "editor"
             c.queryItems = [URLQueryItem(name: "path", value: path)]
         case .settings:
             c.host = "settings"
@@ -123,9 +108,6 @@ enum HostCommand {
         case "terminal":
             guard let path = q["path"], !path.isEmpty else { return nil }
             self = .terminal(path: path)
-        case "editor":
-            guard let path = q["path"], !path.isEmpty else { return nil }
-            self = .editor(path: path)
         case "settings":
             self = .settings
         default:
