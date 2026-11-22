@@ -88,9 +88,13 @@ enum AppMover {
 
     // MARK: - 位置判断
 
+    /// 安装目标，按优先级排列：先 /Applications，没有写权限时再用 ~/Applications。
+    /// 注意 FileManager.urls(for:in:) 返回的顺序是用户目录在前，不能直接用。
     private static var applicationsFolders: [URL] {
-        FileManager.default.urls(for: .applicationDirectory, in: [.localDomainMask, .userDomainMask])
-            .map { $0.resolvingSymlinksInPath() }
+        let fm = FileManager.default
+        let local = fm.urls(for: .applicationDirectory, in: .localDomainMask)
+        let user = fm.urls(for: .applicationDirectory, in: .userDomainMask)
+        return (local + user).map { $0.resolvingSymlinksInPath() }
     }
 
     private static func isInApplicationsFolder(_ url: URL) -> Bool {
