@@ -15,6 +15,7 @@
 		4023ED6F69C9034BBAF7C674 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = F65769F022D58BF10156B4C1 /* Sparkle */; };
 		4234B5DD92582325D71C2D34 /* MenuAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D584F975D4F963C958B778D /* MenuAction.swift */; };
 		56FC11D36B3972C0093E6886 /* SharedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0849483610FCC5F050DA82 /* SharedSettings.swift */; };
+		611AFC75A88DB3F2B4F16FB3 /* AppMover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C14CD78B4A982D6653F081 /* AppMover.swift */; };
 		650189FD91D7A5A4A97F6512 /* ClickMenuFinderExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 92256736DFFF61F109426555 /* ClickMenuFinderExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		71D320D09DE52BBEC03129F3 /* MenuBarContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE1F8F533C88C1182EF318D9 /* MenuBarContent.swift */; };
 		7616D4A38A544749674F70ED /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D753D8356D624B8E4F69A74 /* AppSettings.swift */; };
@@ -73,6 +74,7 @@
 		4AF76D0EDF1A12A2D7DF8101 /* ClickMenu.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClickMenu.entitlements; sourceTree = "<group>"; };
 		576A3C6D4A00E072DF92DF24 /* ClickMenuFinderExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClickMenuFinderExtension.entitlements; sourceTree = "<group>"; };
 		6B27313530D61A3400CAD0B0 /* UpdaterController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterController.swift; sourceTree = "<group>"; };
+		74C14CD78B4A982D6653F081 /* AppMover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMover.swift; sourceTree = "<group>"; };
 		787673119475E94D98AB7AEE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7AA5CB16E8304B854471A3B2 /* Icons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Icons.xcassets; sourceTree = "<group>"; };
 		814943B1E4189A09BFA9F64F /* Launcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Launcher.swift; sourceTree = "<group>"; };
@@ -178,6 +180,7 @@
 			isa = PBXGroup;
 			children = (
 				EC5BC4AB75BBEADD5F539452 /* AppDelegate.swift */,
+				74C14CD78B4A982D6653F081 /* AppMover.swift */,
 				8D753D8356D624B8E4F69A74 /* AppSettings.swift */,
 				4745FD723D9A42CD63C7F864 /* ClickMenuApp.swift */,
 				FD1BF88025FCC8473BB396D6 /* ExtensionStatus.swift */,
@@ -343,6 +346,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FC6ED0A75996400837BB1221 /* AppDelegate.swift in Sources */,
+				611AFC75A88DB3F2B4F16FB3 /* AppMover.swift in Sources */,
 				7616D4A38A544749674F70ED /* AppSettings.swift in Sources */,
 				A2610029CFFD41BF1D6E193B /* ClickMenuApp.swift in Sources */,
 				8BC390E2036802FB4C1E4D29 /* ExtensionStatus.swift in Sources */,
@@ -407,7 +411,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = MKBCLL4LKF;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -422,7 +426,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -550,7 +554,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = MKBCLL4LKF;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -571,7 +575,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

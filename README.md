@@ -27,7 +27,8 @@
 ## 安装
 
 1. 到 [Releases](https://github.com/stackzeng/click-menu/releases/latest) 下载最新的 `ClickMenu-x.y.z.dmg`
-2. 打开 DMG，把 **ClickMenu** 拖到「应用程序」文件夹
+2. 打开 DMG，在安装窗口里把 **ClickMenu** 拖到右边的「应用程序」文件夹
+   （如果直接在 DMG 里打开了 ClickMenu，它会提示你一键移到「应用程序」）
 3. 打开 ClickMenu，按引导启用 Finder 扩展：
    **系统设置 → 通用 → 登录项与扩展 → 访达**，打开 **ClickMenu** 的开关
 4. 在 Finder 里任意文件上右键 →「ClickMenu ▸」
@@ -39,7 +40,7 @@
 
 - 确认第 3 步的扩展开关已经打开
 - 在终端执行 `killall Finder` 重启 Finder
-- 确认 ClickMenu 在「应用程序」文件夹中，而不是直接从 DMG 里运行
+- 确认 ClickMenu 在「应用程序」文件夹中，而不是直接从 DMG 里运行（这种情况 ClickMenu 会提示移动）
 
 ## 从源码构建
 

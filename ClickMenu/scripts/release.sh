@@ -128,13 +128,16 @@ if [[ "$MODE" == "release" ]]; then
 fi
 
 # ---------- DMG ----------
-step "制作 DMG"
-STAGE="$OUT/dmg"
-mkdir -p "$STAGE"
-ditto "$APP" "$STAGE/$APP_NAME.app"
-ln -s /Applications "$STAGE/应用程序"
-hdiutil create -volname "$APP_NAME $VERSION" -srcfolder "$STAGE" -ov -format UDZO -fs HFS+ "$DMG" -quiet
-rm -rf "$STAGE"
+step "制作 DMG（带安装引导布局）"
+# 窗口背景、图标位置、卷图标见 scripts/dmg/；用 dmgbuild 直接写布局，不依赖 Finder 脚本
+VENV="$ROOT/build/tools/venv"
+if [[ ! -x "$VENV/bin/dmgbuild" ]]; then
+  python3 -m venv "$VENV"
+  "$VENV/bin/pip" install -q --disable-pip-version-check "dmgbuild==1.6.2"
+fi
+"$VENV/bin/dmgbuild" -s scripts/dmg/settings.py \
+  -D app="$APP" -D background="$ROOT/scripts/dmg/background.tiff" -D volicon="$ROOT/scripts/dmg/VolumeIcon.icns" \
+  "$APP_NAME $VERSION" "$DMG" >/dev/null
 codesign --sign "$IDENTITY_HASH" --timestamp "$DMG"
 
 if [[ "$MODE" == "release" ]]; then

@@ -14,6 +14,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         installURLHandler()
         log.notice("ClickMenu 已启动")
         Task { @MainActor in
+            // 不在「应用程序」文件夹时先提示移动；正在移动并重新打开时不继续启动流程
+            if AppMover.moveIfNeeded() { return }
+            AppMover.finishPendingCleanup()
+
             ExtensionStatus.shared.start()
             _ = UpdaterController.shared   // 启动 Sparkle，开始后台检查
             if !AppSettings.shared.hasCompletedOnboarding {

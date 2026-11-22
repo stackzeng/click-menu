@@ -73,3 +73,5 @@ out
 gen
 *.txt
 .DS_Store
+# DMG 背景中间产物（由 make_background.swift 生成，打包只用 background.tiff）
+ClickMenu/scripts/dmg/background*.png
