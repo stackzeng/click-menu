@@ -60,3 +60,16 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# ClickMenu 本地构建产物
+ClickMenu/build/
+.idea/
+
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+*.txt
+.DS_Store

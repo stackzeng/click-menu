@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClickMenu 原型</title>
+<style>
+:root{
+  --bg:#e9e9ee; --desk1:#7aa7d8; --desk2:#b59ad6;
+  --win:#ffffff; --win-side:#f2f2f5; --win-bar:#ececef; --line:#d9d9de;
+  --text:#1d1d1f; --text2:#6e6e73; --accent:#0a6cff; --accent-soft:#e3eeff;
+  --menu:rgba(246,246,248,.92); --menu-line:rgba(0,0,0,.1); --hover:#0a6cff;
+  --tag:#ff9f0a; --shadow:0 20px 50px rgba(0,0,0,.25),0 0 0 .5px rgba(0,0,0,.2);
+  --term:#1e1e1e; --term-text:#e6e6e6; --ok:#30d158;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1b1b1e; --desk1:#1f3c63; --desk2:#3f2b5c;
+    --win:#2a2a2d; --win-side:#232326; --win-bar:#333336; --line:#3d3d41;
+    --text:#f2f2f5; --text2:#a1a1a6; --accent:#3d8bff; --accent-soft:#1d3357;
+    --menu:rgba(44,44,48,.94); --menu-line:rgba(255,255,255,.12);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1b1b1e; --desk1:#1f3c63; --desk2:#3f2b5c;
+  --win:#2a2a2d; --win-side:#232326; --win-bar:#333336; --line:#3d3d41;
+  --text:#f2f2f5; --text2:#a1a1a6; --accent:#3d8bff; --accent-soft:#1d3357;
+  --menu:rgba(44,44,48,.94); --menu-line:rgba(255,255,255,.12);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:13px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;
+  -webkit-font-smoothing:antialiased}
+header{max-width:1100px;margin:0 auto;padding:20px 16px 8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+header h1{font-size:20px;margin:0}
+header p{margin:2px 0 0;color:var(--text2)}
+nav{display:flex;gap:4px;background:var(--win-bar);padding:3px;border-radius:9px;flex-wrap:wrap}
+nav button{border:0;background:none;color:var(--text);padding:6px 14px;border-radius:7px;font:inherit;cursor:pointer}
+nav button.on{background:var(--win);box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+main{max-width:1100px;margin:0 auto;padding:8px 16px 40px}
+.note{color:var(--text2);margin:0 0 10px;font-size:12.5px}
+.note b{color:var(--text)}
+.desk{position:relative;border-radius:14px;overflow:hidden;min-height:560px;
+  background:linear-gradient(135deg,var(--desk1),var(--desk2));padding:44px 24px 24px}
+.menubar{position:absolute;top:0;left:0;right:0;height:26px;background:rgba(255,255,255,.35);backdrop-filter:blur(20px);
+  display:flex;align-items:center;padding:0 12px;gap:16px;font-size:13px;color:#111}
+:root[data-theme="dark"] .menubar{background:rgba(0,0,0,.3);color:#eee}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .menubar{background:rgba(0,0,0,.3);color:#eee}}
+.menubar .right{margin-left:auto;display:flex;gap:14px;align-items:center}
+.menubar .cm-icon{padding:1px 6px;border-radius:4px;cursor:pointer;display:flex;align-items:center}
+.menubar .cm-icon.active{background:rgba(255,255,255,.45)}
+.view{display:none}.view.on{display:block}
+
+/* window */
+.win{background:var(--win);border-radius:11px;box-shadow:var(--shadow);overflow:hidden;position:relative}
+.titlebar{height:38px;background:var(--win-bar);display:flex;align-items:center;padding:0 12px;gap:8px;border-bottom:1px solid var(--line)}
+.lights{display:flex;gap:7px}.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.lights i:nth-child(1){background:#ff5f57}.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+.titlebar .t{font-weight:600;margin-left:10px}
+.finder{display:grid;grid-template-columns:170px 1fr;height:440px}
+.side{background:var(--win-side);padding:10px 8px;border-right:1px solid var(--line);font-size:12.5px}
+.side h6{margin:8px 8px 4px;font-size:11px;color:var(--text2);font-weight:600}
+.side div{padding:4px 8px;border-radius:6px;cursor:default}
+.side div.on{background:rgba(0,0,0,.08)}
+:root[data-theme="dark"] .side div.on{background:rgba(255,255,255,.1)}
+.grid{padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));align-content:start;gap:8px;user-select:none;overflow:auto}
+.file{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;border-radius:8px;cursor:default}
+.file .ic{width:54px;height:54px;display:flex;align-items:center;justify-content:center;font-size:42px}
+.file span{font-size:12px;text-align:center;word-break:break-all;padding:1px 5px;border-radius:4px;line-height:1.3}
+.file.sel .ic{background:rgba(0,0,0,.08);border-radius:8px}
+:root[data-theme="dark"] .file.sel .ic{background:rgba(255,255,255,.1)}
+.file.sel span{background:var(--accent);color:#fff}
+.statusbar{grid-column:2;border-top:1px solid var(--line);padding:4px 14px;font-size:11.5px;color:var(--text2);background:var(--win)}
+
+/* context menu */
+.ctx{position:fixed;z-index:50;min-width:230px;background:var(--menu);backdrop-filter:blur(30px);border-radius:8px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3),0 0 0 .5px var(--menu-line);padding:5px;font-size:13px;display:none}
+.ctx .it{display:flex;align-items:center;gap:8px;padding:3px 9px;border-radius:5px;cursor:default;white-space:nowrap;position:relative}
+.ctx .it .k{margin-left:auto;color:var(--text2);font-size:12px}
+.ctx .it svg{width:16px;height:16px;flex:none}
+.ctx .it:hover svg,.ctx .it.hl svg{opacity:1}
+.ctx .it.cm::before{content:"";position:absolute;left:-5px;top:4px;bottom:4px;width:2px;border-radius:2px;background:var(--tag)}
+.ctx .it:hover,.ctx .it.hl{background:var(--hover);color:#fff}
+.ctx .it:hover .k{color:#fff}
+.ctx .sep{height:1px;background:var(--menu-line);margin:5px 9px}
+.ctx .dis{color:var(--text2)}
+.ctx .sub{display:none;position:absolute;left:100%;top:-5px;min-width:200px}
+.ctx .it.has:hover>.sub{display:block}
+.ctx .sub .it{color:var(--text)}
+.ctx .sub .it:hover{color:#fff}
+
+/* HUD */
+.hud{position:absolute;top:40px;right:20px;background:var(--menu);backdrop-filter:blur(30px);border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);padding:10px 14px;display:flex;gap:10px;align-items:center;
+  opacity:0;transform:translateY(-8px);transition:.25s;pointer-events:none;z-index:40;max-width:340px}
+.hud.show{opacity:1;transform:none}
+.hud .dot{width:26px;height:26px;border-radius:50%;background:var(--ok);display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+.hud small{display:block;color:var(--text2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+
+/* terminal */
+.term{position:absolute;right:30px;bottom:30px;width:min(460px,calc(100% - 48px));display:none;z-index:30}
+.term .titlebar{background:#2d2d2d;border-color:#111;color:#ccc}
+.term pre{margin:0;background:var(--term);color:var(--term-text);padding:12px 14px;height:150px;font:12.5px/1.5 Menlo,monospace;white-space:pre-wrap}
+.term .x{cursor:pointer}
+
+.clip{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:var(--win);border-radius:10px;padding:12px 14px;border:1px solid var(--line)}
+.card h4{margin:0 0 6px;font-size:12px;color:var(--text2);font-weight:600}
+.card pre{margin:0;font:12px/1.5 Menlo,monospace;white-space:pre-wrap;word-break:break-all;min-height:36px}
+.icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+.ico{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--win-side);display:flex;flex-direction:column;gap:6px}
+.ico b{font-size:12px}.ico small{color:var(--text2);font-size:10.5px;word-break:break-all}
+.ico-big{position:relative;height:64px;display:flex;align-items:center;justify-content:center;border-radius:7px;background:var(--win)}
+.ico-big svg{position:relative}
+.gridbg{position:absolute;left:50%;top:50%;width:40px;height:40px;transform:translate(-50%,-50%);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:2.5px 2.5px;opacity:.5}
+.ico-sizes{display:flex;gap:6px}
+.ico-sizes span{display:flex;align-items:center;justify-content:center;width:28px;height:22px;border-radius:5px;background:var(--win);border:1px solid var(--line)}
+.ico-sizes span.inv{background:var(--hover);color:#fff;border-color:transparent}
+.opt{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;align-items:center;font-size:12.5px}
+.opt label{display:flex;gap:6px;align-items:center;cursor:pointer}
+
+/* menubar dropdown */
+.drop{position:absolute;top:30px;right:120px;width:260px;background:var(--menu);backdrop-filter:blur(30px);border-radius:9px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3),0 0 0 .5px var(--menu-line);padding:5px;color:var(--text)}
+.drop .head{padding:8px 10px 6px;display:flex;gap:10px;align-items:center}
+.drop .head .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:flex;align-items:center;justify-content:center;color:#fff}
+.drop .st{font-size:11.5px;display:flex;gap:5px;align-items:center}
+.drop .st i{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+/* settings */
+.settings{width:min(620px,100%);margin:0 auto}
+.stabs{display:flex;justify-content:center;gap:4px;padding:6px 0 8px;background:var(--win-bar);border-bottom:1px solid var(--line)}
+.stabs button{border:0;background:none;color:var(--text2);font:inherit;font-size:11.5px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 12px;border-radius:7px;cursor:pointer}
+.stabs button svg{width:22px;height:22px}
+.stabs button.on{background:rgba(0,0,0,.07);color:var(--accent)}
+:root[data-theme="dark"] .stabs button.on{background:rgba(255,255,255,.08)}
+.spane{display:none;padding:18px 22px 22px;min-height:340px}.spane.on{display:block}
+.group{background:var(--win-side);border-radius:9px;border:1px solid var(--line);margin-bottom:14px}
+.row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .grow{flex:1}.row small{display:block;color:var(--text2);font-size:11.5px}
+.row .drag{color:var(--text2);cursor:grab;user-select:none}
+.sw{width:36px;height:21px;border-radius:11px;background:#c7c7cc;position:relative;cursor:pointer;flex:none;transition:.2s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:.2s}
+.sw.on{background:var(--ok)}.sw.on::after{left:17px}
+.btn{border:0;border-radius:6px;padding:5px 12px;font:inherit;cursor:pointer;background:var(--win);color:var(--text);box-shadow:0 0 0 .5px rgba(0,0,0,.25),0 1px 1px rgba(0,0,0,.08)}
+.btn.pri{background:var(--accent);color:#fff;box-shadow:none}
+select{font:inherit;padding:3px 6px;border-radius:6px;border:1px solid var(--line);background:var(--win);color:var(--text)}
+.badge{font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(48,209,88,.15);color:#1f9d45;font-weight:600}
+.badge.off{background:rgba(255,69,58,.15);color:#d70015}
+.tlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.tcard{border:2px solid var(--line);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--win)}
+.tcard.on{border-color:var(--accent);background:var(--accent-soft)}
+.tcard .ti{width:38px;height:38px;border-radius:9px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:#fff;font:600 13px Menlo,monospace}
+.tcard small{display:block;color:var(--text2);font-size:11px}
+.seg{display:inline-flex;background:var(--win-bar);border-radius:7px;padding:2px}
+.seg button{border:0;background:none;font:inherit;padding:3px 12px;border-radius:5px;color:var(--text);cursor:pointer}
+.seg button.on{background:var(--win);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+
+/* onboarding */
+.onb{width:min(560px,100%);margin:0 auto}
+.onb .body{padding:30px 34px 22px;text-align:center;min-height:360px;display:flex;flex-direction:column}
+.onb .logo{width:72px;height:72px;border-radius:18px;margin:0 auto 14px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 6px 18px rgba(10,132,255,.35)}
+.onb h2{margin:0 0 6px;font-size:21px}
+.onb p{color:var(--text2);margin:0 0 18px}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:left}
+.feat div{background:var(--win-side);border:1px solid var(--line);border-radius:10px;padding:12px}
+.feat svg{width:22px;height:22px;color:var(--accent)}
+.feat b{display:block;margin:6px 0 2px}
+.feat small{color:var(--text2)}
+.steps{text-align:left;background:var(--win-side);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:14px}
+.steps ol{margin:0;padding-left:18px}.steps li{margin:4px 0}
+.crumb{display:inline-block;background:var(--win);border:1px solid var(--line);border-radius:5px;padding:0 6px;font-size:12px}
+.onb .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;padding-top:18px}
+.dots{display:flex;gap:6px}.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--accent)}
+.detect{display:flex;gap:8px;align-items:center;justify-content:center;font-size:12.5px;color:var(--text2)}
+.spin{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+@media (max-width:720px){
+  .finder{grid-template-columns:1fr;height:auto}.side{display:none}.grid{min-height:300px}.statusbar{grid-column:1}
+  .clip{grid-template-columns:1fr}.feat{grid-template-columns:1fr}.desk{padding:40px 10px 14px}
+  .drop{right:10px}
+  .menubar{gap:10px;white-space:nowrap;overflow:hidden}.menubar>span{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>ClickMenu 交互原型</h1>
+    <p>v1.0 · Finder 右键增强工具 · 对应 doc/PRD.md</p>
+  </div>
+  <nav id="nav">
+    <button data-v="finder" class="on">① 右键菜单</button>
+    <button data-v="menubar">② 菜单栏</button>
+    <button data-v="settings">③ 设置窗口</button>
+    <button data-v="onboard">④ 首次引导</button>
+  </nav>
+</header>
+
+<main>
+<!-- ① Finder -->
+<section class="view on" id="v-finder">
+  <p class="note">在文件上 <b>右键</b>（或在空白处右键）→ 鼠标移到 <b>「ClickMenu ▸」</b> 展开功能。⌘ / ⇧ + 点击可多选。橙色竖条标记的是 ClickMenu 注入的菜单项。</p>
+  <div class="opt">
+    <label><input type="checkbox" id="optExtra"> 显示 P1 增强项（F5–F7、F9）</label>
+  </div>
+  <div class="desk" id="deskF">
+    <div class="menubar"><b></b><b>访达</b><span>文件</span><span>编辑</span><span>显示</span>
+      <div class="right"><span class="cm-icon" title="ClickMenu">${ICON}</span><span>周六 21:30</span></div></div>
+    <div class="win">
+      <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><span class="t" id="ftitle">桌面</span></div>
+      <div class="finder">
+        <div class="side">
+          <h6>个人收藏</h6>
+          <div data-dir="/Users/bin/Desktop" class="on">🖥 桌面</div>
+          <div data-dir="/Users/bin/Documents">📄 文稿</div>
+          <div data-dir="/Users/bin/Downloads">⬇️ 下载</div>
+          <h6>位置</h6><div>☁️ iCloud 云盘</div>
+        </div>
+        <div class="grid" id="grid"></div>
+        <div class="statusbar" id="fstatus"></div>
+      </div>
+    </div>
+    <div class="hud" id="hud"><div class="dot">✓</div><div><b id="hudT"></b><small id="hudS"></small></div></div>
+    <div class="win term" id="term">
+      <div class="titlebar"><div class="lights"><i class="x" id="termX"></i><i></i><i></i></div><span class="t" id="termT">bin — zsh</span></div>
+      <pre id="termP"></pre>
+    </div>
+  </div>
+  <div class="clip">
+    <div class="card"><h4>📋 剪贴板内容</h4><pre id="clipOut">（还没有复制）</pre></div>
+    <div class="card"><h4>🧾 操作日志</h4><pre id="log"></pre></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h4>🎨 菜单图标规范 · 16×16 彩色圆角方块 · 渐变底色 + 白色图形</h4>
+    <div class="icons" id="iconSpec"></div>
+  </div>
+</section>
+
+<!-- ② Menubar -->
+<section class="view" id="v-menubar">
+  <p class="note">宿主 App 常驻菜单栏。点击图标切换展开；下面的开关可以模拟扩展未启用的状态。</p>
+  <div class="opt"><label><input type="checkbox" id="optEnabled" checked> 扩展已启用</label></div>
+  <div class="desk" style="min-height:380px">
+    <div class="menubar"><b></b><b>访达</b><span>文件</span><span>编辑</span>
+      <div class="right"><span class="cm-icon active" id="mbIcon">${ICON}</span><span>周六 21:30</span></div></div>
+    <div class="drop" id="drop">
+      <div class="head"><div class="logo">${ICON}</div>
+        <div><b>ClickMenu</b><div class="st" id="mbSt"></div></div></div>
+      <div class="ctx" style="display:block;position:static;box-shadow:none;background:none;backdrop-filter:none;padding:0;min-width:0">
+        <div class="sep"></div>
+        <div id="mbWarn"></div>
+        <div class="it" data-go="settings">设置…<span class="k">⌘,</span></div>
+        <div class="it" data-go="onboard">显示使用引导</div>
+        <div class="it">检查更新…</div>
+        <div class="sep"></div>
+        <div class="it">关于 ClickMenu</div>
+        <div class="it">退出 ClickMenu<span class="k">⌘Q</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ③ Settings -->
+<section class="view" id="v-settings">
+  <p class="note">设置窗口分 4 个标签页，所有开关都可以点。</p>
+  <div class="desk">
+    <div class="menubar"><b></b><b>ClickMenu</b><span>编辑</span><span>窗口</span></div>
+    <div class="win settings">
+      <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div><span class="t" id="stitle">通用</span></div>
+      <div class="stabs" id="stabs">
+        <button data-p="general" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>通用</button>
+        <button data-p="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>菜单</button>
+        <button data-p="terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg>终端</button>
+        <button data-p="about"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>关于</button>
+      </div>
+
+      <div class="spane on" id="p-general">
+        <div class="group">
+          <div class="row"><div class="grow"><b>Finder 扩展</b><small>在「系统设置 → 通用 → 登录项与扩展 → 访达」中启用</small></div>
+            <span class="badge">● 已启用</span><button class="btn">打开系统设置</button></div>
+        </div>
+        <div class="group">
+          <div class="row"><div class="grow">登录时自动启动</div><div class="sw on"></div></div>
+          <div class="row"><div class="grow">在菜单栏显示图标<small>关闭后可通过再次打开 App 进入设置</small></div><div class="sw on"></div></div>
+          <div class="row"><div class="grow">复制成功后显示提示</div><div class="sw on"></div></div>
+        </div>
+      </div>
+
+      <div class="spane" id="p-menu">
+        <p class="note" style="margin:0 0 8px">所有功能统一收在右键菜单的「ClickMenu ▸」子菜单里，下面控制子菜单中显示哪些项及顺序。</p>
+        <div class="group" id="menuList"></div>
+        <p class="note" style="margin:0">拖动 ≡ 调整顺序 · 标 P1 的为 v1.1 功能</p>
+      </div>
+
+      <div class="spane" id="p-terminal">
+        <p style="margin:0 0 10px"><b>默认终端</b></p>
+        <div class="tlist" id="tlist"></div>
+        <div class="group" style="margin-top:16px">
+          <div class="row"><div class="grow">打开方式</div>
+            <div class="seg"><button class="on">新窗口</button><button>新标签页</button></div></div>
+          <div class="row"><div class="grow">选中文件时<small>进入文件所在的目录</small></div>
+            <select><option>进入所在目录</option><option>不显示此菜单项</option></select></div>
+        </div>
+      </div>
+
+      <div class="spane" id="p-about" style="text-align:center;padding-top:36px">
+        <div class="logo" style="width:64px;height:64px;border-radius:16px;margin:0 auto 10px;background:linear-gradient(135deg,#0a84ff,#5e5ce6);display:flex;align-items:center;justify-content:center;color:#fff">${ICON_L}</div>
+        <h2 style="margin:0">ClickMenu</h2>
+        <p style="color:var(--text2);margin:4px 0 16px">版本 1.0.0 (1)</p>
+        <button class="btn">检查更新</button> <button class="btn">GitHub</button>
+        <p style="color:var(--text2);font-size:11.5px;margin-top:24px">不联网 · 不收集任何数据</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ④ Onboarding -->
+<section class="view" id="v-onboard">
+  <p class="note">首次打开 App 时弹出，一共 3 步。</p>
+  <div class="desk">
+    <div class="menubar"><b></b><b>ClickMenu</b></div>
+    <div class="win onb">
+      <div class="titlebar"><div class="lights"><i></i><i></i><i></i></div></div>
+      <div class="body" id="onbBody"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="ctx" id="ctx"></div>
+
+<script>
+/* ===== 图标系统 =====
+   16×16 网格 · 1.3px 描边 · 圆角端点 · 单色（currentColor）
+   对应 macOS 菜单的 Template Image：常态跟随文字色，高亮时自动反白 */
+const G = (d, extra='') => `<svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" ${extra}>${d}</svg>`;
+const ICON = G(
+  '<path d="M5.8 5.8 13.9 8.9 10.3 10.3 8.9 13.9Z" fill="currentColor" stroke-width="1.2"/>' +
+  '<path d="M5.8 1.7v1.5M1.7 5.8h1.5M2.9 2.9l1.05 1.05"/>');
+const ICON_L = ICON.replace('width="16" height="16"','width="36" height="36"').replace('stroke-width="1.3"','stroke-width="1.15"');
+document.body.innerHTML = document.body.innerHTML.replaceAll('${ICON_L}',ICON_L).replaceAll('${ICON}',ICON);
+
+const SVG = {
+  // 复制文件名：文档 + 字母 T（名称）
+  name: G('<path d="M9.4 1.9H4.6c-.7 0-1.3.6-1.3 1.3v9.6c0 .7.6 1.3 1.3 1.3h6.8c.7 0 1.3-.6 1.3-1.3V5.2Z"/><path d="M9.4 1.9v2.5c0 .45.35.8.8.8h2.5"/><path d="M5.9 8.1h4.2M8 8.1v4"/>'),
+  // 复制完整路径：文件夹 + 斜杠（路径分隔符）
+  path: G('<path d="M1.8 4.3c0-.7.6-1.3 1.3-1.3h2.6c.35 0 .68.15.92.4l.98 1.1h5.3c.7 0 1.3.6 1.3 1.3v6.2c0 .7-.6 1.3-1.3 1.3H3.1c-.7 0-1.3-.6-1.3-1.3Z"/><path d="M9.1 6.9 6.9 11.3"/>'),
+  // 在此处打开终端：窗口 + 提示符 >_
+  term: G('<rect x="1.8" y="2.6" width="12.4" height="10.8" rx="2.2"/><path d="m4.6 6.3 1.9 1.7-1.9 1.7M8.2 10.1h3.2"/>'),
+  // 复制文件名（不含扩展名）：标签
+  base: G('<path d="M2.2 8.4V3.4c0-.66.54-1.2 1.2-1.2h5c.32 0 .62.13.85.35l4.4 4.4c.47.47.47 1.23 0 1.7l-4.9 4.9c-.47.47-1.23.47-1.7 0l-4.5-4.4a1.2 1.2 0 0 1-.35-.85Z"/><circle cx="5.3" cy="5.3" r=".9" fill="currentColor" stroke="none"/>'),
+  // 复制转义路径：反斜杠 + 空格符 ␣
+  esc: G('<rect x="1.8" y="3.2" width="12.4" height="9.6" rx="2.2"/><path d="M4.3 5.7 6.6 10.3"/><path d="M8.7 9.1v1.2h3.1V9.1"/>'),
+  // 复制 ~ 短路径：主目录（房子）+ ~
+  tilde: G('<path d="M2.4 7 8 2.3 13.6 7v5.8c0 .5-.4.9-.9.9H3.3c-.5 0-.9-.4-.9-.9Z"/><path d="M5.9 10.4c.55-.9 1.45-1 2.1-.35s1.55.55 2.1-.35"/>'),
+  // 用编辑器打开：代码括号
+  code: G('<path d="M5.2 4.4 1.8 8l3.4 3.6M10.8 4.4 14.2 8l-3.4 3.6M9.1 2.8 6.9 13.2"/>'),
+  // 启用扩展（引导页用）：拼图
+  ext: G('<path d="M6.4 2.4a1.5 1.5 0 0 1 3 0v1.2h2.4c.5 0 .9.4.9.9v2.3h-1.1a1.5 1.5 0 0 0 0 3h1.1v2.3c0 .5-.4.9-.9.9H9.5v-1.1a1.5 1.5 0 0 0-3 0V13H4.1c-.5 0-.9-.4-.9-.9V9.8h1.1a1.5 1.5 0 0 0 0-3H3.2V4.5c0-.5.4-.9.9-.9h2.3Z"/>'),
+};
+
+/* 右键菜单用彩色方块图标：渐变底色 + 白色图形（与 App 内 Icons.xcassets 一致） */
+const TILE={brand:['#3D9BFF','#6B5CF0'],name:['#FFB340','#FF7A00'],path:['#4FC3FF','#0A7CFF'],term:['#3EDC6E','#14A84A'],
+  base:['#FF6B8A','#F0305A'],esc:['#D27CFF','#9B4DEB'],tilde:['#40D9D0','#0FA8A8'],code:['#7C86FF','#4E52E6']};
+const tile=(key,svg)=>{const [a,b]=TILE[key]; const inner=svg.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
+  return `<svg viewBox="0 0 16 16" width="16" height="16"><defs><linearGradient id="t-${key}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>`+
+  `<rect x=".5" y=".5" width="15" height="15" rx="3.6" fill="url(#t-${key})"/><rect x=".5" y=".5" width="15" height="15" rx="3.6" fill="none" stroke="#000" stroke-opacity=".12" stroke-width=".5"/>`+
+  `<g transform="translate(2.72 2.72) scale(0.66)" color="#fff" fill="none" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`;};
+const CM={brand:tile('brand',ICON),name:tile('name',SVG.name),path:tile('path',SVG.path),term:tile('term',SVG.term),
+  base:tile('base',SVG.base),esc:tile('esc',SVG.esc),tilde:tile('tilde',SVG.tilde),code:tile('code',SVG.code)};
+
+/* 图标规范展示 */
+const SPEC=[
+  ['brand',CM.brand,'ClickMenu（父菜单）','cursorarrow.rays','P0'],
+  ['name',CM.name,'复制文件名','doc.text','P0'],
+  ['path',CM.path,'复制完整路径','folder','P0'],
+  ['term',CM.term,'在此处打开终端','terminal','P0'],
+  ['base',CM.base,'复制文件名（不含扩展名）','tag','P1'],
+  ['esc',CM.esc,'复制转义路径','character.cursor.ibeam','P1'],
+  ['tilde',CM.tilde,'复制 ~ 短路径','house','P1'],
+  ['code',CM.code,'用编辑器打开','chevron.left.forwardslash.chevron.right','P1'],
+];
+const big=svg=>svg.replace('width="16" height="16"','width="40" height="40"');
+document.getElementById('iconSpec').innerHTML=SPEC.map(([k,svg,t,sf,pr])=>`
+  <div class="ico">
+    <div class="ico-big"><div class="gridbg"></div>${big(svg)}</div>
+    <div class="ico-sizes"><span>${svg}</span><span class="inv">${svg}</span></div>
+    <b>${t}</b><small>${pr} · SF 备选：${sf}</small>
+  </div>`).join('');
+
+/* ---------- nav ---------- */
+const nav = document.getElementById('nav');
+function go(v){
+  nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  hideCtx();
+  try{localStorage.setItem('cm-view',v)}catch(e){}
+}
+nav.onclick = e=>{const b=e.target.closest('button'); if(b) go(b.dataset.v)};
+try{const v=localStorage.getItem('cm-view'); if(v) go(v)}catch(e){}
+
+/* ---------- finder ---------- */
+const DIRS = {
+  '/Users/bin/Desktop':[['📁','click-menu'],['📕','报告 2026.pdf'],['🖼','截图 2026-11-21 21.03.png'],['📝','notes.md'],['📦','ClickMenu.dmg'],['📁','设计稿']],
+  '/Users/bin/Documents':[['📁','技术'],['📁','合同'],['📊','预算.xlsx'],['📝','README.md']],
+  '/Users/bin/Downloads':[['📦','Xcode_17.xip'],['🎵','demo song.mp3'],['📕','SwiftUI 指南.pdf']],
+};
+const NAMES = {'/Users/bin/Desktop':'桌面','/Users/bin/Documents':'文稿','/Users/bin/Downloads':'下载'};
+let cwd='/Users/bin/Desktop', sel=new Set(), lastIdx=null;
+const grid=document.getElementById('grid');
+
+function renderGrid(){
+  grid.innerHTML = DIRS[cwd].map(([ic,n],i)=>
+    `<div class="file${sel.has(i)?' sel':''}" data-i="${i}"><div class="ic">${ic}</div><span>${n}</span></div>`).join('');
+  document.getElementById('ftitle').textContent = NAMES[cwd];
+  document.getElementById('fstatus').textContent = sel.size? `已选择 ${sel.size} 项，共 ${DIRS[cwd].length} 项` : `${DIRS[cwd].length} 项`;
+}
+document.querySelector('.side').onclick = e=>{
+  const d=e.target.closest('[data-dir]'); if(!d) return;
+  document.querySelectorAll('.side [data-dir]').forEach(x=>x.classList.toggle('on',x===d));
+  cwd=d.dataset.dir; sel.clear(); renderGrid();
+};
+function pick(i,e){
+  if(e.metaKey||e.ctrlKey){ sel.has(i)?sel.delete(i):sel.add(i); lastIdx=i; }
+  else if(e.shiftKey && lastIdx!==null){ const [a,b]=[lastIdx,i].sort((x,y)=>x-y); for(let k=a;k<=b;k++) sel.add(k); }
+  else { sel=new Set([i]); lastIdx=i; }
+  renderGrid();
+}
+grid.addEventListener('mousedown',e=>{
+  if(e.button!==0) return;
+  const f=e.target.closest('.file');
+  if(f) pick(+f.dataset.i,e); else { sel.clear(); renderGrid(); }
+});
+grid.addEventListener('dblclick',e=>{
+  const f=e.target.closest('.file'); if(!f) return;
+  const [ic,n]=DIRS[cwd][+f.dataset.i];
+  if(ic==='📁'){ const p=cwd+'/'+n; DIRS[p]=DIRS[p]||[['📝','index.swift'],['📄','Package.swift']]; NAMES[p]=n; cwd=p; sel.clear(); renderGrid(); }
+});
+grid.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const f=e.target.closest('.file');
+  if(f){ const i=+f.dataset.i; if(!sel.has(i)){ sel=new Set([i]); lastIdx=i; renderGrid(); } showCtx(e,'items'); }
+  else { sel.clear(); renderGrid(); showCtx(e,'container'); }
+});
+
+/* ---------- context menu ---------- */
+const ctx=document.getElementById('ctx');
+const optExtra=document.getElementById('optExtra');
+function cmItems(kind){
+  const L=[];
+  if(kind==='items'){
+    L.push({id:'name',t:'复制文件名',ic:CM.name});
+    if(optExtra.checked) L.push({id:'base',t:'复制文件名（不含扩展名）',ic:CM.base,p1:1});
+    L.push({id:'path',t:'复制完整路径',ic:CM.path});
+    if(optExtra.checked){ L.push({id:'esc',t:'复制转义路径',ic:CM.esc,p1:1}); L.push({id:'tilde',t:'复制 ~ 短路径',ic:CM.tilde,p1:1}); }
+  } else {
+    L.push({id:'path',t:'复制当前目录路径',ic:CM.path});
+  }
+  L.push({id:'term',t:'在此处打开终端',ic:CM.term});
+  if(optExtra.checked) L.push({id:'code',t:'用 VS Code 打开',ic:CM.code,p1:1});
+  return L;
+}
+function itemHTML(x){ return `<div class="it cm" data-a="${x.id}">${x.ic}${x.t}${x.p1?'<span class="k">P1</span>':''}</div>`; }
+function showCtx(e,kind){
+  const cm=cmItems(kind);
+  const cmBlock = `<div class="it cm has">${CM.brand}ClickMenu<span class="k">▸</span><div class="ctx sub" style="display:none">${cm.map(itemHTML).join('')}</div></div>`;
+  const single = sel.size===1 ? `“${DIRS[cwd][[...sel][0]][1]}”` : `${sel.size} 项`;
+  ctx.innerHTML = kind==='items'
+    ? `<div class="it">打开</div><div class="it">打开方式<span class="k">▸</span></div>
+       <div class="sep"></div><div class="it">移到废纸篓</div>
+       <div class="sep"></div><div class="it">显示简介</div><div class="it">重新命名</div><div class="it">压缩 ${single}</div><div class="it">拷贝</div>
+       <div class="sep"></div>${cmBlock}
+       <div class="sep"></div><div class="it">标签…</div>`
+    : `<div class="it">新建文件夹</div><div class="sep"></div><div class="it">显示简介</div>
+       <div class="it dis">粘贴项目</div><div class="sep"></div><div class="it">使用群组</div><div class="it">排序方式<span class="k">▸</span></div>
+       <div class="sep"></div>${cmBlock}`;
+  ctx.style.display='block';
+  const r=ctx.getBoundingClientRect();
+  let x=e.clientX, y=e.clientY;
+  if(x+r.width>innerWidth-8) x=innerWidth-r.width-8;
+  if(y+r.height>innerHeight-8) y=Math.max(8,innerHeight-r.height-8);
+  ctx.style.left=x+'px'; ctx.style.top=y+'px';
+  ctx.querySelectorAll('.has').forEach(h=>{
+    const s=h.querySelector('.sub');
+    h.onmouseenter=()=>{
+      s.style.cssText='display:block';
+      let rr=s.getBoundingClientRect();
+      if(rr.right>innerWidth-8){ s.style.left='auto'; s.style.right='100%'; rr=s.getBoundingClientRect(); }
+      if(rr.left<8){ s.style.cssText='display:block;left:auto;right:4px;top:100%'; }   // 两侧都放不下时，展开在下方
+    };
+    h.onmouseleave=()=>{ s.style.display='none'; };
+  });
+}
+function hideCtx(){ ctx.style.display='none'; }
+document.addEventListener('mousedown',e=>{ if(!ctx.contains(e.target)) hideCtx(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') hideCtx(); });
+window.addEventListener('scroll',hideCtx);
+ctx.addEventListener('click',e=>{
+  const it=e.target.closest('[data-a]'); if(!it) return;
+  act(it.dataset.a); hideCtx();
+});
+
+/* ---------- actions ---------- */
+const selected=()=>[...sel].sort((a,b)=>a-b).map(i=>DIRS[cwd][i]);
+const full=n=>cwd+'/'+n;
+function act(a){
+  const s=selected(); let out, label;
+  const unit = s.length>1?`${s.length} 个`:'1 个';
+  switch(a){
+    case 'name': out=s.map(x=>x[1]).join('\n'); label=`已复制 ${unit}文件名`; break;
+    case 'base': out=s.map(x=>x[0]==='📁'?x[1]:x[1].replace(/\.[^.]+$/,'')).join('\n'); label=`已复制 ${unit}文件名（不含扩展名）`; break;
+    case 'path': out=s.length? s.map(x=>full(x[1])).join('\n') : cwd; label=s.length?`已复制 ${unit}路径`:'已复制当前目录路径'; break;
+    case 'esc': out=s.map(x=>full(x[1]).replace(/([ ()&'"])/g,'\\$1')).join('\n'); label=`已复制 ${unit}转义路径`; break;
+    case 'tilde': out=s.map(x=>full(x[1]).replace('/Users/bin','~')).join('\n'); label=`已复制 ${unit}短路径`; break;
+    case 'term': return openTerm(s);
+    case 'code': log(`用 VS Code 打开：${s.length?full(s[0][1]):cwd}`); return hud('已在 VS Code 中打开', s.length?s[0][1]:NAMES[cwd]);
+  }
+  try{ navigator.clipboard && navigator.clipboard.writeText(out).catch(()=>{}); }catch(e){}
+  document.getElementById('clipOut').textContent=out;
+  log(label);
+  hud(label, out.split('\n')[0] + (s.length>1?` 等 ${s.length} 项`:''));
+}
+let hudTimer;
+function hud(t,s){
+  const h=document.getElementById('hud');
+  document.getElementById('hudT').textContent=t; document.getElementById('hudS').textContent=s;
+  h.classList.add('show'); clearTimeout(hudTimer); hudTimer=setTimeout(()=>h.classList.remove('show'),1500);
+}
+function openTerm(s){
+  let dir=cwd;
+  if(s.length){ const [ic,n]=s[0]; dir = ic==='📁'? full(n) : cwd; }
+  const short=dir.split('/').pop();
+  document.getElementById('termT').textContent=`${short} — zsh — 80×24`;
+  document.getElementById('termP').textContent=`Last login: Sat Nov 21 21:30:12 on ttys001\nbin@MacBook-Pro ${short} % pwd\n${dir}\nbin@MacBook-Pro ${short} % █`;
+  document.getElementById('term').style.display='block';
+  log(`打开终端：${dir}`);
+}
+document.getElementById('termX').onclick=()=>document.getElementById('term').style.display='none';
+function log(m){
+  const el=document.getElementById('log'); const t=new Date().toTimeString().slice(0,8);
+  el.textContent = `${t}  ${m}\n` + el.textContent.split('\n').slice(0,5).join('\n');
+}
+renderGrid();
+log('在文件上右键开始体验');
+
+/* ---------- menubar ---------- */
+const optEnabled=document.getElementById('optEnabled');
+function renderMb(){
+  const on=optEnabled.checked;
+  document.getElementById('mbSt').innerHTML = on
+    ? '<i style="background:var(--ok)"></i>Finder 扩展已启用'
+    : '<i style="background:#ff453a"></i>Finder 扩展未启用';
+  document.getElementById('mbWarn').innerHTML = on ? ''
+    : '<div class="it" data-go="onboard" style="color:#ff453a">⚠︎ 去启用 Finder 扩展…</div><div class="sep"></div>';
+}
+optEnabled.onchange=renderMb; renderMb();
+document.getElementById('mbIcon').onclick=function(){ const d=document.getElementById('drop'); const show=d.style.display==='none'; d.style.display=show?'block':'none'; this.classList.toggle('active',show); };
+document.getElementById('v-menubar').addEventListener('click',e=>{ const g=e.target.closest('[data-go]'); if(g) go(g.dataset.go); });
+
+/* ---------- settings ---------- */
+const PT={general:'通用',menu:'菜单',terminal:'终端',about:'关于'};
+document.getElementById('stabs').onclick=e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#stabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.spane').forEach(p=>p.classList.toggle('on',p.id==='p-'+b.dataset.p));
+  document.getElementById('stitle').textContent=PT[b.dataset.p];
+};
+document.addEventListener('click',e=>{
+  const s=e.target.closest('.sw'); if(s) s.classList.toggle('on');
+  const sb=e.target.closest('.seg button'); if(sb){ sb.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===sb)); }
+});
+const MENU=[['复制文件名',1,0],['复制完整路径',1,0],['在此处打开终端',1,0],['复制文件名（不含扩展名）',0,1],['复制转义路径',0,1],['复制 ~ 短路径',0,1],['用编辑器打开',0,1]];
+const ml=document.getElementById('menuList');
+ml.innerHTML=MENU.map(([t,on,p1])=>`<div class="row" draggable="true"><span class="drag">≡</span><div class="grow">${t} ${p1?'<span class="badge" style="background:rgba(255,159,10,.18);color:#c76a00">P1</span>':''}</div><div class="sw${on?' on':''}"></div></div>`).join('');
+let dragEl;
+ml.addEventListener('dragstart',e=>{dragEl=e.target.closest('.row'); dragEl.style.opacity=.4;});
+ml.addEventListener('dragend',()=>{dragEl.style.opacity=1;});
+ml.addEventListener('dragover',e=>{e.preventDefault(); const r=e.target.closest('.row'); if(r&&r!==dragEl){ const b=r.getBoundingClientRect(); ml.insertBefore(dragEl, e.clientY<b.top+b.height/2? r : r.nextSibling); }});
+const TERMS=[['终端','Terminal','#3a3a3c','>_',1],['iTerm2','iTerm2','#1b1b1b','$_',1],['Warp','Warp','#5b4bff','W',0],['Ghostty','Ghostty','#3551f3','G',1],['Alacritty','Alacritty','#e05d2b','A',0]];
+const tl=document.getElementById('tlist');
+tl.innerHTML=TERMS.map(([n,en,c,g,inst],i)=>`<div class="tcard${i===0?' on':''}"><div class="ti" style="background:${c}">${g}</div><b>${n}</b><small>${inst?'已安装':'未安装'}</small></div>`).join('');
+tl.onclick=e=>{const c=e.target.closest('.tcard'); if(c) tl.querySelectorAll('.tcard').forEach(x=>x.classList.toggle('on',x===c));};
+
+/* ---------- onboarding ---------- */
+let step=0, detT;
+function renderOnb(){
+  clearTimeout(detT);
+  const dots=`<div class="dots">${[0,1,2].map(i=>`<i class="${i===step?'on':''}"></i>`).join('')}</div>`;
+  const body=document.getElementById('onbBody');
+  if(step===0) body.innerHTML=`
+    <div class="logo">${ICON_L}</div><h2>欢迎使用 ClickMenu</h2><p>让 Finder 右键菜单更好用</p>
+    <div class="feat">
+      <div>${SVG.name}<b>复制文件名</b><small>一键复制，多选按行分隔</small></div>
+      <div>${SVG.path}<b>复制完整路径</b><small>直接粘贴到终端或代码里</small></div>
+      <div>${SVG.term}<b>在此处打开终端</b><small>自动进入对应目录</small></div>
+    </div>
+    <div class="foot">${dots}<button class="btn pri" data-n="1">继续</button></div>`;
+  if(step===1){ body.innerHTML=`
+    <div class="logo" style="background:linear-gradient(135deg,#ff9f0a,#ff375f)">${SVG.ext.replace('width="16" height="16"','width="36" height="36"').replace('stroke-width="1.3"','stroke-width="1.15"')}</div>
+    <h2>启用 Finder 扩展</h2><p>macOS 要求你手动打开一次扩展开关</p>
+    <div class="steps"><ol>
+      <li>点击下方「打开系统设置」</li>
+      <li>进入 <span class="crumb">通用</span> › <span class="crumb">登录项与扩展</span></li>
+      <li>找到 <span class="crumb">访达</span> 一项，打开 <b>ClickMenu</b> 的开关</li>
+    </ol></div>
+    <div class="detect" id="det"><div class="spin"></div>正在检测扩展状态…</div>
+    <div class="foot">${dots}<div style="display:flex;gap:8px"><button class="btn" data-n="0">返回</button><button class="btn pri" id="openSys">打开系统设置</button></div></div>`;
+    document.getElementById('openSys').onclick=()=>{ detT=setTimeout(()=>{ step=2; renderOnb(); },1600); document.getElementById('det').innerHTML='<div class="spin"></div>等待你打开开关…（原型中 1.6 秒后自动通过）'; };
+  }
+  if(step===2) body.innerHTML=`
+    <div class="logo" style="background:linear-gradient(135deg,#30d158,#0a84ff)"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12 5 5 9-10"/></svg></div>
+    <h2>一切就绪</h2><p>打开 Finder，在任意文件上右键试试吧</p>
+    <div class="steps" style="text-align:center">ClickMenu 会常驻菜单栏 <span style="display:inline-flex;vertical-align:middle">${ICON}</span>，在那里可以打开设置</div>
+    <div class="foot">${dots}<div style="display:flex;gap:8px"><button class="btn" data-n="0">重新查看</button><button class="btn pri" data-goto="finder">去试试</button></div></div>`;
+}
+document.getElementById('onbBody').addEventListener('click',e=>{
+  const n=e.target.closest('[data-n]'); if(n){ step=+n.dataset.n; renderOnb(); }
+  const g=e.target.closest('[data-goto]'); if(g) go(g.dataset.goto);
+});
+renderOnb();
+</script>
+</body>
+</html>

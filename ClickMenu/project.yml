@@ -1,0 +1,94 @@
+# ClickMenu 工程定义（XcodeGen）
+# 修改后执行：xcodegen generate  重新生成 ClickMenu.xcodeproj
+name: ClickMenu
+
+options:
+  bundleIdPrefix: io.github.stackzeng
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: MKBCLL4LKF
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "Apple Development"
+    ENABLE_HARDENED_RUNTIME: YES
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+
+targets:
+  # 宿主 App：菜单栏常驻、设置、首次引导、HUD、打开终端/编辑器
+  ClickMenu:
+    type: application
+    platform: macOS
+    sources:
+      - path: ClickMenu
+      - path: Shared
+    dependencies:
+      - target: ClickMenuFinderExtension
+    info:
+      path: ClickMenu/Info.plist
+      properties:
+        CFBundleDisplayName: ClickMenu
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.utilities
+        NSHumanReadableCopyright: "Copyright © 2026 stackzeng"
+        CFBundleURLTypes:
+          - CFBundleURLName: io.github.stackzeng.clickmenu
+            CFBundleURLSchemes: [clickmenu]
+    entitlements:
+      path: ClickMenu/ClickMenu.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - MKBCLL4LKF.io.github.stackzeng.clickmenu
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.stackzeng.clickmenu
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    scheme:
+      testTargets:
+        - ClickMenuTests
+
+  # Finder Sync 扩展：向 Finder 右键菜单注入「ClickMenu ▸」
+  ClickMenuFinderExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: ClickMenuFinderExtension
+      - path: Shared
+    info:
+      path: ClickMenuFinderExtension/Info.plist
+      properties:
+        CFBundleDisplayName: ClickMenu
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.FinderSync
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).FinderSync
+    entitlements:
+      path: ClickMenuFinderExtension/ClickMenuFinderExtension.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - MKBCLL4LKF.io.github.stackzeng.clickmenu
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.stackzeng.clickmenu.FinderExtension
+
+  # 单元测试：路径格式化等纯逻辑
+  ClickMenuTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: ClickMenuTests
+      - path: Shared/PathFormatter.swift
+      - path: Shared/MenuAction.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.stackzeng.clickmenu.tests
+        GENERATE_INFOPLIST_FILE: YES
